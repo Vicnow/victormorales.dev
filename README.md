@@ -56,9 +56,11 @@ publica el build en S3 e invalida CloudFront. Las credenciales llegan por OIDC: 
      --template-file infra/github-deploy-role.yml \
      --stack-name victormorales-dev-deploy-role \
      --capabilities CAPABILITY_NAMED_IAM \
-     --parameter-overrides GitHubOwner=TU_USUARIO BucketName=TU_BUCKET DistributionId=TU_DISTRIBUCION CreateOidcProvider=false
+     --parameter-overrides BucketName=TU_BUCKET DistributionId=TU_DISTRIBUCION CreateOidcProvider=false
    ```
 
+   El template ya apunta a [`Vicnow/victormorales.dev`](https://github.com/Vicnow/victormorales.dev)
+   (`GitHubOwner` y `GitHubRepo` por defecto); solo cámbialos si el repo se mueve o se renombra.
    Usa `CreateOidcProvider=true` solo si tu cuenta todavía no tiene el proveedor `token.actions.githubusercontent.com`.
 
 2. En GitHub, **Settings → Secrets and variables → Actions → Variables**, crea:

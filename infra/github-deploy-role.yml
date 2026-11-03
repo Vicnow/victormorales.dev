@@ -6,10 +6,12 @@ Description: >
 Parameters:
   GitHubOwner:
     Type: String
+    Default: Vicnow
     Description: Usuario u organización de GitHub dueña del repositorio.
   GitHubRepo:
     Type: String
-    Default: victormorales-dev
+    Default: victormorales.dev
+    Description: Nombre del repositorio tal cual aparece en GitHub (con punto).
   BucketName:
     Type: String
     Description: Bucket privado de S3 que sirve el sitio.
