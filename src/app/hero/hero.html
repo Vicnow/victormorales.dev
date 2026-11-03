@@ -1,0 +1,58 @@
+<section class="hero" id="inicio" #hero>
+  <div class="stage" #stage aria-hidden="true" [class.is-ready]="store.sceneReady()" [class.is-off]="stageOff()">
+    <canvas #canvas></canvas>
+    @for (node of nodes; track node.key) {
+      @let state = store.tags()[node.key];
+      <div #tagEl class="tag" [style.--c]="node.color" [class.is-on]="state.on" [class.is-dim]="state.dim">
+        <span class="tag-name">
+          {{ node.name }}
+          @if (state.chip) {
+            <b class="chip" [class.is-miss]="state.miss">{{ state.chip }}</b>
+          }
+        </span>
+        <span class="tag-meta">{{ state.meta }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="hero-copy">
+    <p class="eyebrow">Cloud &amp; Solutions Engineer · Ciudad de México</p>
+    <h1>Víctor Hugo<br>Morales</h1>
+    <p class="bio">
+      Diseño arquitecturas serverless en AWS y desarrollo con la IA como parte del método. He levantado
+      infraestructura cloud desde cero, migrado monolitos a serverless y montado infraestructura como código
+      con CI/CD por entorno.
+    </p>
+
+    <!-- Comentario al margen, no titular: el dato está ahí, sin presumirlo. -->
+    @let byline = store.byline();
+    <p class="byline" aria-live="polite">
+      @switch (byline.kind) {
+        @case ('tracking') {
+          siguiendo tu petición<span class="caret"></span>
+        }
+        @case ('live') {
+          por cierto, esta página te llegó desde <strong>{{ byline.where }}</strong> en <strong>{{ byline.ms }}</strong>.
+          Route 53 + CloudFront + S3, nada del otro mundo.
+        }
+        @case ('cached') {
+          por cierto, tu navegador ya tenía esta página; la original salió desde <strong>{{ byline.where }}</strong>.
+          Route 53 + CloudFront + S3, nada del otro mundo.
+        }
+        @case ('demo') {
+          por cierto, así te llega esta página. Route 53 + CloudFront + S3, nada del otro mundo.
+        }
+        @default {
+          por cierto, esta página te llega por Route 53 + CloudFront + S3. Nada del otro mundo.
+        }
+      }
+    </p>
+
+    <div class="ctas">
+      <a class="btn btn-primary" href="mailto:contacto@victormorales.dev">Escríbeme</a>
+      <a class="btn" href="https://www.linkedin.com/in/victor-hg/" target="_blank" rel="noopener">Ver LinkedIn</a>
+    </div>
+  </div>
+
+  <app-trace (replay)="replay()" />
+</section>

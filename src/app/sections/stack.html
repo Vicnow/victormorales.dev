@@ -1,0 +1,17 @@
+<section class="section" id="stack">
+  <div class="section-inner">
+    <h2 class="section-title">Con qué trabajo</h2>
+    <div class="groups">
+      @for (group of groups; track group.name) {
+        <div class="group">
+          <h3>{{ group.name }}</h3>
+          <ul class="chips">
+            @for (item of group.items; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,83 @@
+# Compila en cada PR; en main publica el build en S3 e invalida CloudFront.
+# Credenciales por OIDC: no hay llaves de AWS guardadas en GitHub (ver infra/github-deploy-role.yml).
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: dist/victormorales-dev/browser
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy a S3 + CloudFront
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://victormorales.dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      BUCKET: ${{ vars.S3_BUCKET }}
+      DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: site
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Primero los archivos con hash (inmutables): así el HTML nuevo nunca apunta a algo que aún no existe.
+      - name: Subir assets con hash
+        run: >
+          aws s3 sync site "s3://$BUCKET"
+          --exclude "*.html" --exclude "favicon.svg"
+          --cache-control "public,max-age=31536000,immutable"
+
+      # El navegador revalida en cada visita (la escena mide un viaje real) y el edge lo guarda un día.
+      - name: Subir HTML
+        run: >
+          aws s3 sync site "s3://$BUCKET"
+          --exclude "*" --include "*.html" --include "favicon.svg" --exclude "index.csr.html"
+          --cache-control "public,max-age=0,s-maxage=86400,must-revalidate"
+
+      - name: Borrar archivos que ya no existen en el build
+        run: aws s3 sync site "s3://$BUCKET" --delete --exclude "index.csr.html"
+
+      - name: Invalidar CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*"

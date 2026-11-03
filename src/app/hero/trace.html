@@ -1,0 +1,30 @@
+<div class="trace-head">
+  <span class="badge" [class.is-live]="store.badge() === 'live'" [class.is-demo]="store.badge() === 'demo'">{{ badge() }}</span>
+  <span class="summary">{{ store.summary() }}</span>
+  <button
+    class="btn-mini toggle"
+    type="button"
+    aria-label="Ver detalle"
+    aria-controls="trace-body"
+    [attr.aria-expanded]="open()"
+    (click)="open.set(!open())"
+  ><span class="btn-label">detalle</span></button>
+  <button class="btn-mini" type="button" aria-label="Repetir el recorrido" title="Repetir" (click)="replay.emit()">↻</button>
+</div>
+
+<div class="trace-body" id="trace-body" [hidden]="!open()">
+  <ol class="rows">
+    @for (row of rows; track row.key) {
+      @let state = store.rows()[row.key];
+      <li [attr.data-row]="row.key" [class.is-on]="state.on">
+        <span class="k">{{ row.label }}</span>
+        <span class="v">{{ state.v }}</span>
+        <span class="ms">{{ state.ms }}</span>
+        <span class="d">{{ state.d }}</span>
+      </li>
+    }
+  </ol>
+  @if (store.foot()) {
+    <p class="foot">{{ store.foot() }}</p>
+  }
+</div>

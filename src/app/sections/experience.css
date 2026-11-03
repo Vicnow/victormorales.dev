@@ -1,0 +1,50 @@
+:host { display: block; }
+
+.roles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.role {
+  display: grid;
+  gap: 6px 40px;
+  padding: 32px 0;
+  border-top: 1px solid var(--line);
+}
+
+.role:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.when {
+  margin: 4px 0 0;
+  color: var(--faint);
+  font: 500 0.8125rem/1.4 var(--mono);
+}
+
+h3 {
+  margin: 0;
+  font: 600 1.3125rem/1.3 var(--display);
+  letter-spacing: -0.01em;
+}
+
+.at { color: var(--cielo); }
+
+.points {
+  display: grid;
+  gap: 8px;
+  max-width: 46em;
+  margin: 14px 0 0;
+  padding-left: 1.1em;
+  color: var(--muted);
+}
+
+.points li::marker { color: var(--faint); }
+
+.chips { margin-top: 18px; }
+
+@media (min-width: 800px) {
+  .role { grid-template-columns: 210px 1fr; }
+}

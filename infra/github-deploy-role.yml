@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Rol que asume GitHub Actions (OIDC) para publicar victormorales.dev:
+  escribir en el bucket del sitio e invalidar su distribución de CloudFront. Nada más.
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: Usuario u organización de GitHub dueña del repositorio.
+  GitHubRepo:
+    Type: String
+    Default: victormorales-dev
+  BucketName:
+    Type: String
+    Description: Bucket privado de S3 que sirve el sitio.
+  DistributionId:
+    Type: String
+    Description: ID de la distribución de CloudFront (E...).
+  CreateOidcProvider:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+    Description: >
+      'true' solo si la cuenta aún no tiene el proveedor OIDC token.actions.githubusercontent.com
+      (es uno por cuenta; si ya usas GitHub Actions con AWS, probablemente ya existe).
+
+Conditions:
+  CreateProvider: !Equals [!Ref CreateOidcProvider, 'true']
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+      # AWS ya no valida estas huellas para GitHub, pero algunas versiones del recurso las piden.
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${GitHubRepo}-deploy
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If
+                - CreateProvider
+                - !GetAtt GitHubOidcProvider.Arn
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                # Solo el environment "production" de este repo puede asumir el rol.
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}/${GitHubRepo}:environment:production
+      Policies:
+        - PolicyName: publish-site
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:${AWS::Partition}:s3:::${BucketName}
+              - Effect: Allow
+                Action: [s3:PutObject, s3:DeleteObject]
+                Resource: !Sub arn:${AWS::Partition}:s3:::${BucketName}/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${DistributionId}
+
+Outputs:
+  RoleArn:
+    Description: Valor para la variable AWS_ROLE_ARN del repositorio.
+    Value: !GetAtt DeployRole.Arn

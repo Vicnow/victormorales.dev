@@ -1,0 +1,27 @@
+<section class="section section-alt" id="experiencia">
+  <div class="section-inner">
+    <h2 class="section-title">Experiencia</h2>
+    <ol class="roles">
+      @for (role of roles; track role.company) {
+        <li class="role">
+          <p class="when">{{ role.period }}</p>
+          <div>
+            <h3>{{ role.title }} <span class="at">· {{ role.company }}</span></h3>
+            <ul class="points">
+              @for (point of role.points; track point) {
+                <li>{{ point }}</li>
+              }
+            </ul>
+            @if (role.stack.length) {
+              <ul class="chips">
+                @for (item of role.stack; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            }
+          </div>
+        </li>
+      }
+    </ol>
+  </div>
+</section>

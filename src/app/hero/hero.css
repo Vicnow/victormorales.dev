@@ -1,0 +1,199 @@
+:host { display: block; }
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 92px var(--gutter) 40px;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 55% at 72% 40%, rgb(79 143 203 / 0.14), transparent 70%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+
+h1 {
+  margin: 0;
+  font: 800 clamp(3rem, 6.2vw, 6rem)/0.95 var(--display);
+  letter-spacing: -0.04em;
+}
+
+.bio {
+  margin: 22px 0 0;
+  max-width: 34em;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+}
+
+/* Comentario al margen, no titular: mono, chico y apagado. */
+.byline {
+  margin: 18px 0 0;
+  max-width: 44em;
+  min-height: 3.2em;
+  color: var(--muted);
+  font: 400 0.8125rem/1.6 var(--mono);
+}
+
+.byline::before {
+  content: "// ";
+  color: var(--faint);
+}
+
+.byline strong {
+  color: var(--cielo);
+  font-weight: 400;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 4px;
+  vertical-align: -0.16em;
+  background: var(--cielo);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* ---------- Escena 3D y etiquetas ---------- */
+
+.stage {
+  position: relative;
+  height: clamp(280px, 72vw, 440px);
+  margin: 8px calc(var(--gutter) * -1) 0;
+}
+
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.stage.is-off { display: none; }
+
+.tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  gap: 2px;
+  padding: 6px 10px 7px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgb(11 17 27 / 0.74);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s, border-color 0.4s;
+  will-change: transform;
+}
+
+.tag::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  height: 10px;
+  background: linear-gradient(var(--c), transparent);
+  opacity: 0.7;
+}
+
+.stage.is-ready .tag { opacity: 0.75; }
+.stage.is-ready .tag.is-on { opacity: 1; border-color: color-mix(in srgb, var(--c) 55%, transparent); }
+.stage.is-ready .tag.is-dim { opacity: 0.4; }
+
+.tag-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 0.8125rem/1.2 var(--sans);
+}
+
+.tag-name::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.tag-meta {
+  font: 400 0.6875rem/1.3 var(--mono);
+  color: var(--muted);
+}
+
+.chip {
+  padding: 3px 5px;
+  border-radius: 4px;
+  background: var(--menta);
+  color: var(--bg);
+  font: 600 0.625rem/1 var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.chip.is-miss { background: var(--ambar); }
+
+app-trace { margin-top: 32px; }
+
+/* ---------- Móvil y tablet: la escena justo después del titular ---------- */
+
+@media (max-width: 1079px) {
+  .hero-copy { display: contents; }
+  .eyebrow { order: 1; }
+  h1 { order: 2; }
+  .byline { order: 3; min-height: 4.8em; }
+  .stage { order: 4; }
+  .bio { order: 5; }
+  .ctas { order: 6; }
+  app-trace { order: 7; }
+}
+
+/* ---------- Escritorio: la escena ocupa todo el hero ---------- */
+
+@media (min-width: 1080px) {
+  .hero {
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 120px var(--gutter) 150px;
+  }
+
+  .hero-copy { max-width: min(600px, 46vw); }
+
+  .stage {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    margin: 0;
+  }
+
+  /* Anclada abajo a la derecha: el detalle se despliega hacia arriba. */
+  app-trace {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 32px;
+    max-width: min(440px, 36vw);
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+}
