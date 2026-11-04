@@ -1,10 +1,12 @@
 /**
- * Lo que de verdad pasó con la petición: tiempos del navegador + cabeceras de CloudFront.
+ * Lo que de verdad pasó con la petición: tiempos del navegador + cabeceras de CloudFront,
+ * y el deploy que puso esta versión en S3 (commit y run de GitHub Actions).
  * Funciones puras, sin Angular ni Three.js; solo se llaman en el navegador.
  */
 
-export type NodeKey = 'you' | 'r53' | 'cf' | 's3';
-export type RowKey = 'dns' | 'tls' | 'get' | 'ok';
+export type NodeKey = 'you' | 'r53' | 'cf' | 's3' | 'ci' | 'gh';
+export type RowKey = 'ci' | RequestRowKey;
+export type RequestRowKey = 'dns' | 'tls' | 'get' | 'ok';
 
 export interface Journey {
   pop: string;
@@ -33,7 +35,39 @@ export interface JourneyInfo {
   hit: boolean;
   edge: string;
   summary: string;
-  rows: Record<RowKey, Row>;
+  rows: Record<RequestRowKey, Row>;
+}
+
+export interface Deploy {
+  sha: string;
+  run: string;
+  /** Hora del build en ISO; con ella se calcula el "hace X h". */
+  at: string;
+  /** Datos reales inyectados por el workflow (false = modo demo). */
+  live: boolean;
+}
+
+// El workflow los define al compilar (ng build --define); en local no existen.
+declare const DEPLOY_SHA: string;
+declare const DEPLOY_RUN: string;
+declare const DEPLOY_AT: string;
+
+export function readDeploy(): Deploy {
+  if (typeof DEPLOY_SHA === 'string') {
+    return { sha: DEPLOY_SHA, run: DEPLOY_RUN, at: DEPLOY_AT, live: true };
+  }
+  return { sha: 'a1b2c3d', run: '42', at: new Date(Date.now() - 2 * 3_600_000).toISOString(), live: false };
+}
+
+const RELATIVE = new Intl.RelativeTimeFormat('es', { numeric: 'auto', style: 'short' });
+
+export function timeAgo(iso: string, now = Date.now()) {
+  const seconds = Math.max(0, (now - Date.parse(iso)) / 1000);
+  if (Number.isNaN(seconds)) return '';
+  if (seconds < 60) return 'hace un momento';
+  if (seconds < 3600) return RELATIVE.format(-Math.round(seconds / 60), 'minute');
+  if (seconds < 86_400) return RELATIVE.format(-Math.round(seconds / 3600), 'hour');
+  return RELATIVE.format(-Math.round(seconds / 86_400), 'day');
 }
 
 // Códigos IATA de los edges de CloudFront más probables para tu audiencia.

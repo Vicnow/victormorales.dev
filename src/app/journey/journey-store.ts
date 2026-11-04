@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { CACHE_LABELS, fmtMs, Journey, JourneyInfo, NodeKey, Row, RowKey } from './journey';
+import { CACHE_LABELS, Deploy, fmtMs, Journey, JourneyInfo, NodeKey, Row, RowKey } from './journey';
 
 export interface TagState {
   meta: string;
@@ -26,6 +26,7 @@ export interface Byline {
 const tag = (meta: string): TagState => ({ meta, on: false, dim: false, chip: null, miss: false });
 
 const BLANK_ROWS: Record<RowKey, RowState> = {
+  ci: { v: 'GitHub Actions', d: 'último deploy', ms: '—', on: false },
   dns: { v: 'Route 53', d: 'resolviendo victormorales.dev', ms: '—', on: false },
   tls: { v: 'certificado ACM', d: 'negociando conexión cifrada', ms: '—', on: false },
   get: { v: 'CloudFront', d: 'pidiendo la página al edge', ms: '—', on: false },
@@ -40,6 +41,7 @@ const BLANK_ROWS: Record<RowKey, RowState> = {
 export class JourneyStore {
   readonly tags = signal<Record<NodeKey, TagState>>({
     you: tag('tu navegador'), r53: tag('DNS'), cf: tag('edge'), s3: tag('bucket privado'),
+    ci: tag('build + deploy'), gh: tag('repo'),
   });
   readonly rows = signal(BLANK_ROWS);
   readonly byline = signal<Byline>({ kind: 'static', where: '', ms: '' });
@@ -53,6 +55,7 @@ export class JourneyStore {
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone?.split('/').pop()?.replaceAll('_', ' ');
     this.tags.set({
       you: tag(zone ? `desde ${zone}` : 'tu navegador'), r53: tag('DNS'), cf: tag('edge'), s3: tag('bucket privado'),
+      ci: tag('build + deploy'), gh: tag('repo'),
     });
     this.rows.set(BLANK_ROWS);
     this.byline.set({ kind: 'tracking', where: '', ms: '' });
@@ -76,6 +79,20 @@ export class JourneyStore {
 
   dim(key: NodeKey, meta: string) {
     this.patchTag(key, { dim: true, meta });
+  }
+
+  /** El nodo vuelve a reposo (sin resaltar) para la siguiente fase. */
+  rest(key: NodeKey) {
+    this.patchTag(key, { on: false });
+  }
+
+  revealDeploy(deploy: Deploy, ago: string) {
+    this.patchRow('ci', {
+      v: `${deploy.sha} · run #${deploy.run}`,
+      d: 'build + deploy con GitHub Actions (OIDC)',
+      ms: ago,
+      on: true,
+    });
   }
 
   reveal(key: RowKey, row: Row) {

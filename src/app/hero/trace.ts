@@ -3,6 +3,7 @@ import { RowKey } from '../journey/journey';
 import { JourneyStore } from '../journey/journey-store';
 
 const ROWS: { key: RowKey; label: string }[] = [
+  { key: 'ci', label: 'CI' },
   { key: 'dns', label: 'DNS' },
   { key: 'tls', label: 'TLS' },
   { key: 'get', label: 'GET /' },

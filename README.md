@@ -39,6 +39,9 @@ en el bundle inicial y nunca corre durante el prerender.
 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) compila en cada PR y, en cada push a `main`,
 publica el build en S3 e invalida CloudFront. Las credenciales llegan por OIDC: no hay llaves de AWS en GitHub.
 
+El build recibe el commit, el número de run y la hora (`ng build --define DEPLOY_SHA=… DEPLOY_RUN=… DEPLOY_AT=…`);
+el hero los muestra en el acto del deploy (GitHub → Actions → S3). En local no existen y salen datos de ejemplo.
+
 | Archivos | Cache-Control | Por qué |
 |---|---|---|
 | JS/CSS con hash | `max-age=31536000, immutable` | Cambian de nombre en cada build |

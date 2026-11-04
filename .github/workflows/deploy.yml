@@ -28,7 +28,14 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
+
+      # El hero muestra el commit, el run y la hora de este deploy (ver readDeploy en journey.ts).
+      - name: Build
+        run: >
+          npm run build --
+          --define "DEPLOY_SHA='${GITHUB_SHA::7}'"
+          --define "DEPLOY_RUN='${GITHUB_RUN_NUMBER}'"
+          --define "DEPLOY_AT='$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
 
       - uses: actions/upload-artifact@v7
         with:

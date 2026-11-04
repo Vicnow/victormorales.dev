@@ -108,6 +108,7 @@
 
 .rows li.is-on { opacity: 1; }
 
+[data-row="ci"] { --rc: var(--ink); }
 [data-row="dns"] { --rc: var(--violeta); }
 [data-row="tls"] { --rc: var(--azul); }
 [data-row="get"] { --rc: var(--ambar); }

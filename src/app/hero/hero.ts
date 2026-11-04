@@ -9,7 +9,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { describe, NodeKey, readJourney } from '../journey/journey';
+import { describe, NodeKey, readDeploy, readJourney } from '../journey/journey';
 import type { JourneyScene } from '../journey/journey-scene';
 import { JourneyStore } from '../journey/journey-store';
 import { Trace } from './trace';
@@ -19,6 +19,8 @@ const NODES: { key: NodeKey; name: string; color: string }[] = [
   { key: 'r53', name: 'Route 53', color: 'var(--violeta)' },
   { key: 'cf', name: 'CloudFront', color: 'var(--azul)' },
   { key: 's3', name: 'S3', color: 'var(--menta)' },
+  { key: 'ci', name: 'Actions', color: 'var(--ink)' },
+  { key: 'gh', name: 'GitHub', color: 'var(--ink)' },
 ];
 
 @Component({
@@ -64,7 +66,7 @@ export class Hero {
       this.store.load(journey);
 
       await scene.whenVisible();
-      if (!destroyed) void scene.play(journey, describe(journey));
+      if (!destroyed) void scene.play(journey, describe(journey), readDeploy());
     });
   }
 

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { fmtMs, Journey, JourneyInfo, NodeKey, RowKey } from './journey';
+import { Deploy, fmtMs, Journey, JourneyInfo, NodeKey, RequestRowKey, timeAgo } from './journey';
 import type { JourneyStore } from './journey-store';
 
 /**
- * Escena 3D del recorrido Route 53 → CloudFront → S3.
+ * Escena 3D en dos actos: el deploy (GitHub → Actions → S3, e invalidación de CloudFront)
+ * y la petición del visitante (Route 53 → CloudFront → S3).
  * Solo corre en el navegador: el hero la importa de forma diferida en afterNextRender.
  */
 
@@ -47,20 +48,27 @@ interface Tween {
 
 const COLOR = {
   bg: 0x0b111b, line: 0x8db8e0,
-  you: 0x8db8e0, r53: 0xa48cf0, cf: 0x5d9fe0, s3: 0x4fd1a1,
-  req: 0xffb35c, res: 0x4fd1a1,
+  you: 0x8db8e0, r53: 0xa48cf0, cf: 0x5d9fe0, s3: 0x4fd1a1, ci: 0xe6edf5, gh: 0xe6edf5,
+  req: 0xffb35c, res: 0x4fd1a1, deploy: 0xe6edf5,
 } as const;
 
-// Posiciones de cada servicio; `lift` es la altura de su etiqueta.
+// Zig-zag: el visitante entra por la izquierda y tu código por la derecha; se encuentran en
+// CloudFront y S3. Posiciones revisadas para que nodos y etiquetas no choquen entre sí ni con
+// la nav, el texto o la traza (escritorio 1280–1920, tablet y móvil). `lift` = altura de la etiqueta.
 const NODES: Record<NodeKey, { pos: [number, number, number]; lift: number }> = {
-  you: { pos: [-3.4, -0.9, 1.2], lift: 0.8 },
-  r53: { pos: [-1.2, 1.7, -0.8], lift: 0.85 },
-  cf: { pos: [1.0, -0.3, 0.6], lift: 1.15 },
-  s3: { pos: [3.4, 1.0, -1.4], lift: 0.9 },
+  you: { pos: [-4.6, -1.0, 1.0], lift: 0.8 },
+  r53: { pos: [-2.8, 2.0, -0.6], lift: 0.85 },
+  cf: { pos: [-1.1, -0.8, 0.6], lift: 1.0 },
+  s3: { pos: [1.1, 2.0, -0.8], lift: 0.9 },
+  ci: { pos: [2.9, -0.9, 0.2], lift: 0.9 },
+  gh: { pos: [4.7, 1.9, -0.6], lift: 0.8 },
 };
-const LINKS: [NodeKey, NodeKey][] = [['you', 'r53'], ['you', 'cf'], ['cf', 's3']];
+const LINKS: [NodeKey, NodeKey][] = [
+  ['you', 'r53'], ['you', 'cf'], ['cf', 's3'], // la petición
+  ['gh', 'ci'], ['ci', 's3'], ['ci', 'cf'], // el deploy y la invalidación
+];
 const FLOOR_Y = -2.4;
-const SPAN = 7.6; // ancho que ocupan los nodos con sus etiquetas
+const SPAN = 10.4; // ancho que ocupan los nodos con sus etiquetas
 const IDLE = 0.18;
 const FLOW = 6;
 const TRAIL = 40;
@@ -76,6 +84,8 @@ const SHAPES: Record<NodeKey, () => THREE.BufferGeometry> = {
   r53: () => new THREE.OctahedronGeometry(0.48),
   cf: () => new THREE.IcosahedronGeometry(0.55, 1), // red global
   s3: () => new THREE.CylinderGeometry(0.46, 0.36, 0.86, 32), // un bucket, literal
+  ci: () => new THREE.BoxGeometry(0.62, 0.62, 0.62), // el build: gira mientras trabaja
+  gh: () => new THREE.CircleGeometry(0.52, 48), // insignia con un grafo de commits dentro
 };
 
 function glowTexture() {
@@ -106,6 +116,15 @@ function ring(radius: number, y: number, material: THREE.LineBasicMaterial) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
 }
 
+// Círculo en el plano XY (de frente a la cámara): los commits del grafo.
+function dot(x: number, y: number, radius: number, material: THREE.LineBasicMaterial) {
+  const points = Array.from({ length: 25 }, (_, i) => {
+    const a = (i / 24) * Math.PI * 2;
+    return new THREE.Vector3(x + Math.cos(a) * radius, y + Math.sin(a) * radius, 0.01);
+  });
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
+}
+
 export class JourneyScene {
   readonly hasWebGL: boolean;
 
@@ -120,7 +139,7 @@ export class JourneyScene {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
   private readonly glowMap = glowTexture();
-  private readonly centroid = new THREE.Vector3(0, 0.3, 0);
+  private readonly centroid = new THREE.Vector3(0.05, 0.4, 0);
   private readonly nodes = {} as Record<NodeKey, SceneNode>;
   private readonly links: Link[];
   private readonly lineColor = new THREE.Color(COLOR.line);
@@ -150,7 +169,7 @@ export class JourneyScene {
   private frameId = 0;
   private last = 0;
   private elapsed = 0;
-  private current: { d: Journey; info: JourneyInfo } | null = null;
+  private current: { d: Journey; info: JourneyInfo; deploy: Deploy } | null = null;
 
   constructor(el: SceneElements, store: JourneyStore) {
     this.el = el;
@@ -221,11 +240,12 @@ export class JourneyScene {
     });
   }
 
-  async play(d: Journey, info: JourneyInfo) {
-    this.current = { d, info };
+  async play(d: Journey, info: JourneyInfo, deploy: Deploy) {
+    this.current = { d, info, deploy };
     this.cancelTweens();
     this.reset();
     try {
+      await this.deploySequence(deploy);
       await this.sequence(d, info);
     } catch (error) {
       if (error !== CANCEL) throw error;
@@ -233,7 +253,7 @@ export class JourneyScene {
   }
 
   replay() {
-    if (this.current) void this.play(this.current.d, this.current.info);
+    if (this.current) void this.play(this.current.d, this.current.info, this.current.deploy);
   }
 
   destroy() {
@@ -252,6 +272,33 @@ export class JourneyScene {
 
   /* ---------------- Línea de tiempo ---------------- */
 
+  // Acto 1: cómo llegó esta versión a S3. Un paso rápido; el protagonista es el acto 2.
+  private async deploySequence(deploy: Deploy) {
+    const ago = timeAgo(deploy.at);
+    this.arrive('gh', `main · ${deploy.sha}`);
+    await this.wait(0.35);
+
+    await this.travel('gh', 'ci', 0.6, COLOR.deploy);
+    this.arrive('ci', `#${deploy.run} · ${ago}`);
+    await this.wait(0.35); // el cubo gira rápido: está compilando
+
+    await this.travel('ci', 's3', 0.6, COLOR.deploy);
+    this.arrive('s3', `versión ${deploy.sha}`);
+    await this.travel('ci', 'cf', 0.55, COLOR.deploy);
+    this.arrive('cf', 'caché invalidada');
+    this.store.revealDeploy(deploy, ago);
+    this.hidePacket();
+    await this.wait(0.45);
+
+    // El backstage queda tenue y S3/CloudFront vuelven a reposo para el recorrido del visitante.
+    this.nodes.gh.level = this.nodes.ci.level = 0.5;
+    for (const key of ['s3', 'cf'] as const) {
+      this.nodes[key].level = IDLE;
+      this.store.rest(key);
+    }
+  }
+
+  // Acto 2: tu petición, con los tiempos reales de esta visita.
   private async sequence(d: Journey, info: JourneyInfo) {
     this.arrive('you');
     await this.wait(0.5);
@@ -305,7 +352,7 @@ export class JourneyScene {
     this.store.arrive(key, meta);
   }
 
-  private reveal(key: RowKey, info: JourneyInfo) {
+  private reveal(key: RequestRowKey, info: JourneyInfo) {
     const row = info.rows[key];
     this.store.reveal(key, row);
     if (this.reduceMotion) {
@@ -320,7 +367,11 @@ export class JourneyScene {
     const link = this.links.find((l) => (l.a === from && l.b === to) || (l.a === to && l.b === from))!;
     const reverse = link.a !== from;
     this.paintPacket(color);
-    link.curve.getPoint(reverse ? 1 : 0, this.packet.position);
+    // Si el paquete arranca en otro nodo (Actions → S3 y luego Actions → CloudFront), se oculta
+    // un instante para que la estela no dibuje un salto entre ambos.
+    const start = link.curve.getPoint(reverse ? 1 : 0);
+    if (this.packet.visible && start.distanceTo(this.packet.position) > 0.01) this.hidePacket();
+    this.packet.position.copy(start);
     this.showPacket();
     return this.tween(seconds, (t) => {
       const k = ease(t);
@@ -392,6 +443,19 @@ export class JourneyScene {
       group.add(orbit);
     }
     if (key === 's3') core.add(ring(0.432, 0.18, edgeMaterial));
+    if (key === 'gh') {
+      // Grafo de commits: la rama principal, una rama que sale y vuelve, y tres commits.
+      core.add(
+        lines([
+          [-0.14, -0.38, 0.01], [-0.14, 0.38, 0.01],
+          [-0.14, -0.14, 0.01], [0.16, 0.02, 0.01],
+          [0.16, 0.02, 0.01], [-0.14, 0.2, 0.01],
+        ], edgeMaterial),
+        dot(-0.14, -0.27, 0.06, edgeMaterial),
+        dot(0.16, 0.02, 0.06, edgeMaterial),
+        dot(-0.14, 0.3, 0.06, edgeMaterial),
+      );
+    }
 
     // Sombra en el piso: aro fijo, aro de "ping" y línea punteada hasta el nodo.
     const foot = new THREE.Vector3(base.x, FLOOR_Y + 0.01, base.z);
@@ -485,12 +549,12 @@ export class JourneyScene {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
 
-    // En escritorio la escena vive en la mitad derecha; en móvil, centrada.
+    // En escritorio la escena vive en la mitad derecha (sin tocar la columna de texto); en móvil, centrada.
     const wide = this.desktop.matches;
     const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
-    const share = wide ? 0.46 : 0.7;
-    this.view.dist = clamp(SPAN / share / 2 / (tan * this.camera.aspect), 8, 20);
-    this.view.x = this.centroid.x - (wide ? 0.4 * this.view.dist * tan * this.camera.aspect : 0);
+    const share = wide ? 0.38 : 0.86;
+    this.view.dist = clamp(SPAN / share / 2 / (tan * this.camera.aspect), 8, 26);
+    this.view.x = this.centroid.x - (wide ? 0.46 * this.view.dist * tan * this.camera.aspect : 0);
     this.view.lift = wide ? 0.16 * this.view.dist * tan : 0;
     const fog = this.scene.fog as THREE.Fog;
     fog.near = this.view.dist + 2;
@@ -553,6 +617,10 @@ export class JourneyScene {
     this.nodes.r53.core.rotation.y += dt * 0.4 * motion;
     this.nodes.cf.core.rotation.y += dt * 0.15 * motion;
     this.orbit.rotation.y = time * 0.6 * motion;
+    // El cubo de Actions gira despacio en reposo y acelera cuando le llega un commit.
+    const build = (0.3 + 3 * this.nodes.ci.pulse) * dt * motion;
+    this.nodes.ci.core.rotation.x += build * 0.6;
+    this.nodes.ci.core.rotation.y += build;
 
     this.links.forEach((link, li) => {
       link.heat = Math.max(0, link.heat - dt * 0.8);
