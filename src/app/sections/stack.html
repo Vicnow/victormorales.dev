@@ -7,7 +7,7 @@
           <h3>{{ group.name }}</h3>
           <ul class="chips">
             @for (item of group.items; track item) {
-              <li>{{ item }}</li>
+              <li><app-tool-icon [tool]="item" />{{ item }}</li>
             }
           </ul>
         </div>

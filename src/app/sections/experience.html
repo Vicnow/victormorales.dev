@@ -15,7 +15,7 @@
             @if (role.stack.length) {
               <ul class="chips">
                 @for (item of role.stack; track item) {
-                  <li>{{ item }}</li>
+                  <li><app-tool-icon [tool]="item" />{{ item }}</li>
                 }
               </ul>
             }

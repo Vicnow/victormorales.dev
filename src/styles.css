@@ -97,11 +97,20 @@ button:focus-visible {
 }
 
 .chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
   font: 500 0.8125rem/1 var(--mono);
+  transition: border-color 0.2s;
 }
+
+.chips li:hover { border-color: rgb(141 184 224 / 0.35); }
+
+/* El ícono toma su color de marca al pasar el mouse (los genéricos se quedan en azul). */
+.chips li:hover app-tool-icon { color: var(--brand, var(--cielo)); }
 
 /* Sin JavaScript no hay escena ni traza: queda el contenido prerenderizado. */
 html:not(.js) .stage,
