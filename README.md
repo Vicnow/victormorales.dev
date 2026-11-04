@@ -24,12 +24,24 @@ src/app/
   hero/trace.*           píldora con el detalle del recorrido
   content/cv.ts          contenido del CV (experiencia, stack, formación, contacto)
   sections/*             experiencia, stack, formación y contacto
-infra/github-deploy-role.yml   rol OIDC para GitHub Actions (CloudFormation)
-.github/workflows/deploy.yml   build en PRs, deploy en main
   journey/journey.ts         lectura de tiempos y cabeceras (funciones puras)
   journey/journey-store.ts   estado de la interfaz con signals
   journey/journey-scene.ts   escena Three.js + línea de tiempo (carga diferida)
+public/proyectos/              páginas HTML estáticas, fuera de Angular (se copian tal cual al build)
+infra/github-deploy-role.yml   rol OIDC para GitHub Actions (CloudFormation)
+infra/url-rewrite.js           CloudFront Function: /ruta → /ruta/index.html
+.github/workflows/deploy.yml   build en PRs, deploy en main
 ```
+
+### Documentos de proyectos
+
+| URL | Archivo |
+|---|---|
+| `/proyectos/savaremedika-viaticos/docs` | `public/proyectos/savaremedika-viaticos/docs/index.html` |
+| `/proyectos/savaremedika-viaticos/docs/asociar-xml` | `public/proyectos/savaremedika-viaticos/docs/asociar-xml/index.html` |
+
+Comparten las imágenes de `docs/img/` y las referencian con rutas absolutas, porque la URL no lleva `/` final.
+Llevan `noindex` para que no aparezcan en buscadores.
 
 `journey-scene.ts` se importa con `import()` dentro de `afterNextRender`: Three.js no entra
 en el bundle inicial y nunca corre durante el prerender.
@@ -46,6 +58,7 @@ el hero los muestra en el acto del deploy (GitHub → Actions → S3). En local 
 |---|---|---|
 | JS/CSS con hash | `max-age=31536000, immutable` | Cambian de nombre en cada build |
 | HTML y favicon | `max-age=0, s-maxage=86400` | El navegador revalida en cada visita (la escena mide un viaje real) y el edge lo guarda un día (HIT) |
+| Todo `proyectos/` | `max-age=0, s-maxage=86400` | Sus imágenes no llevan hash: pueden cambiar con el mismo nombre |
 
 > **Ojo:** el paso de limpieza usa `--delete`. Todo lo que esté en el bucket y no venga en el build se borra.
 > Si hoy guardas ahí algo más (un PDF, imágenes), muévelo a `public/` antes del primer deploy.
@@ -85,24 +98,22 @@ el hero los muestra en el acto del deploy (GitHub → Actions → S3). En local 
 
 ```bash
 npm run build
-aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*.html" --exclude "favicon.svg" --cache-control "public,max-age=31536000,immutable"
-aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*" --include "*.html" --include "favicon.svg" --exclude "index.csr.html" --cache-control "public,max-age=0,s-maxage=86400,must-revalidate"
+aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*.html" --exclude "favicon.svg" --exclude "proyectos/*" --cache-control "public,max-age=31536000,immutable"
+aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*" --include "*.html" --include "favicon.svg" --include "proyectos/*" --exclude "index.csr.html" --cache-control "public,max-age=0,s-maxage=86400,must-revalidate"
 aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --delete --exclude "index.csr.html"
 aws cloudfront create-invalidation --distribution-id TU_DISTRIBUCION --paths "/*"
 ```
 
-### Rutas nuevas (`/proyectos`, `/blog`…)
+### Rutas (`/proyectos`, `/blog`…)
 
 Con S3 privado vía OAC, CloudFront no resuelve `/proyectos` → `/proyectos/index.html`.
-Asocia esta CloudFront Function (viewer request) al comportamiento por defecto:
+Lo hace la CloudFront Function `victormorales-dev-url-rewrite` ([`infra/url-rewrite.js`](infra/url-rewrite.js)),
+asociada como viewer request al comportamiento por defecto de la distribución. Para cambiarla:
 
-```js
-function handler(event) {
-  var request = event.request;
-  if (request.uri.endsWith('/')) request.uri += 'index.html';
-  else if (!request.uri.includes('.')) request.uri += '/index.html';
-  return request;
-}
+```bash
+aws cloudfront describe-function --name victormorales-dev-url-rewrite --query ETag --output text
+aws cloudfront update-function --name victormorales-dev-url-rewrite --if-match ETAG --function-config Comment="/ruta -> /ruta/index.html",Runtime=cloudfront-js-2.0 --function-code fileb://infra/url-rewrite.js
+aws cloudfront publish-function --name victormorales-dev-url-rewrite --if-match ETAG_NUEVO
 ```
 
 ### Datos exactos de cada visita (opcional)

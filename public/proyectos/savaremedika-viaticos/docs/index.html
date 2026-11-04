@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>¿Por qué los XML no se asocian solos?</title>
+<meta name="description" content="Por qué al contabilizar desde el Sistema de Viáticos las facturas se asocian a mano a la póliza en CONTPAQi.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/proyectos/savaremedika-viaticos/docs/img/icono-savare.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto+Mono:wght@400;500&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout: membrete Savare Medika + columna de lectura (~740px); flujo, tablas y evidencia se abren a ~1000px. Colores del Sistema de Viáticos. */
+:root {
+  --bg: #F3F6F9;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2F6;
+  --ink: #0F172A;
+  --muted: #51607A;
+  --line: #D5DEE8;
+  --brand-gradient: linear-gradient(109.6deg, #13A468 11.2%, #08699D 91.1%);
+  --on-brand: #FFFFFF;
+  --green-text: #0A7A4C;
+  --accent: #125094;
+  --accent-soft: #E5EEF8;
+  --ok: #0A7A4C;
+  --ok-soft: #E1F4EA;
+  --warn: #8F5B05;
+  --warn-soft: #FAEFD8;
+  --bad: #B42318;
+  --bad-soft: #FBE6E3;
+  --font-display: "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1322; --surface: #131F35; --surface-2: #1A2842; --ink: #E5ECF5; --muted: #94A3B8; --line: #25344D;
+    --green-text: #4ADE80; --accent: #6FA8E6; --accent-soft: #162A45; --ok: #4ADE80; --ok-soft: #12301F;
+    --warn: #E3AE4F; --warn-soft: #33270F; --bad: #F1796D; --bad-soft: #3A1815;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1322; --surface: #131F35; --surface-2: #1A2842; --ink: #E5ECF5; --muted: #94A3B8; --line: #25344D;
+  --green-text: #4ADE80; --accent: #6FA8E6; --accent-soft: #162A45; --ok: #4ADE80; --ok-soft: #12301F;
+  --warn: #E3AE4F; --warn-soft: #33270F; --bad: #F1796D; --bad-soft: #3A1815;
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 36px 64px;
+  display: grid;
+  gap: 52px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 600; }
+h2 { font-size: 1.6rem; font-weight: 600; }
+h3 { font-size: 1.12rem; font-weight: 600; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-size: 0.86em; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--font-display); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green-text); }
+
+/* Membrete */
+.letterhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-bottom: 16px; position: relative; }
+.letterhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 2px; background: var(--brand-gradient); }
+.letterhead .logo { display: block; height: 46px; width: auto; }
+.lh-meta { display: grid; justify-items: end; font-family: var(--font-display); font-size: 0.85rem; color: var(--muted); line-height: 1.35; }
+.lh-meta strong { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+
+header.top { display: grid; gap: 14px; }
+.lede { font-size: 1.14rem; max-width: 740px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.86rem; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 500; }
+
+.answer { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 14px; position: relative; overflow: hidden; }
+.answer::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--brand-gradient); }
+.answer ol { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; max-width: 760px; }
+.answer li::marker { font-family: var(--font-display); font-weight: 700; color: var(--green-text); }
+
+section { display: grid; gap: 18px; scroll-margin-top: 16px; min-width: 0; }
+.section-head { display: grid; gap: 8px; max-width: 740px; }
+.section-head p { color: var(--muted); }
+.prose { display: grid; gap: 12px; max-width: 740px; }
+ul.list { margin: 0; padding-left: 1.25em; display: grid; gap: 8px; max-width: 740px; }
+
+/* Flujo */
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.lane { border-radius: 12px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.lane.sistema { background: var(--ok-soft); border: 1px solid var(--ok); }
+.lane.contpaqi { background: var(--accent-soft); border: 1px solid var(--accent); }
+.lane-title { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.lane.sistema .lane-title { color: var(--ok); }
+.lane.contpaqi .lane-title { color: var(--accent); }
+.step { background: var(--surface); border-radius: 8px; padding: 10px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 0.93rem; }
+.step .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex: none; }
+.ic.ok { background: var(--ok); color: var(--surface); }
+.ic.no { background: var(--bad); color: var(--surface); }
+.ic.hand { background: var(--accent); color: var(--surface); }
+.step b { font-weight: 600; }
+.step small { display: block; color: var(--muted); font-size: 0.82rem; }
+.wall { display: grid; place-items: center; align-content: center; gap: 6px; padding: 8px 4px; text-align: center; max-width: 150px; }
+.wall .bar { width: 6px; height: 100%; min-height: 60px; border-radius: 3px; background: repeating-linear-gradient(180deg, var(--bad) 0 10px, transparent 10px 16px); }
+.wall span { font-size: 0.78rem; font-weight: 600; color: var(--bad); line-height: 1.3; }
+.flow-note { font-size: 0.9rem; color: var(--muted); max-width: 760px; }
+
+/* Evidencia */
+.table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--font-display); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: none; }
+th[scope="row"] { font-weight: 500; }
+.mk { font-weight: 700; margin-right: 4px; }
+.mk.ok { color: var(--ok); } .mk.bad { color: var(--bad); }
+.table-note { font-size: 0.86rem; color: var(--muted); max-width: 760px; }
+
+.timeline { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; max-width: 780px; }
+.timeline li { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.timeline li:last-child { border-bottom: none; }
+.timeline time { font-family: var(--font-display); font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.timeline b { font-weight: 600; }
+
+/* Versiones */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.fact .k { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.fact .v { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+.fact p { font-size: 0.88rem; color: var(--muted); }
+blockquote { margin: 0; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; padding: 14px 18px; max-width: 760px; display: grid; gap: 6px; }
+blockquote p:first-child { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; }
+blockquote cite { font-style: normal; font-size: 0.85rem; color: var(--muted); }
+
+/* Alternativas */
+.pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.acc { background: var(--accent-soft); color: var(--accent); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+tr.actual td, tr.actual th { background: var(--ok-soft); }
+
+/* Por qué es el mejor */
+.reasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.reason { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 6px; align-content: start; }
+.reason p { color: var(--muted); font-size: 0.94rem; }
+
+/* Consejos */
+.cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.case { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 0 10px 10px 0; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.case .who { font-size: 0.84rem; color: var(--muted); }
+.case p { font-size: 0.94rem; }
+.case .fix { color: var(--ok); font-weight: 500; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; max-width: 780px; }
+.cta a { font-weight: 600; }
+
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0 18px; max-width: 1000px; }
+details[open] { padding-bottom: 16px; }
+summary { cursor: pointer; padding: 14px 0; font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; }
+details .prose { gap: 10px; }
+details ul.list { font-size: 0.92rem; }
+
+.sources { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 0.88rem; max-width: 780px; }
+
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; display: flex; gap: 14px; align-items: flex-start; max-width: 780px; }
+footer img { width: 28px; height: 28px; flex: none; }
+
+@media (max-width: 720px) {
+  .flow { grid-template-columns: minmax(0, 1fr); }
+  .wall { max-width: none; grid-auto-flow: column; justify-content: center; }
+  .wall .bar { width: 60px; height: 6px; min-height: 0; background: repeating-linear-gradient(90deg, var(--bad) 0 10px, transparent 10px 16px); }
+}
+@media (max-width: 560px) {
+  .wrap { padding-block: 26px 48px; gap: 42px; }
+  .lh-meta { justify-items: start; }
+  .letterhead .logo { height: 38px; }
+  .timeline li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="letterhead">
+    <img class="logo" src="/proyectos/savaremedika-viaticos/docs/img/logo-savare.png" alt="Savare Medika" width="174" height="46">
+    <div class="lh-meta">
+      <strong>Sistema de Viáticos</strong>
+      <span>Documento interno</span>
+    </div>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">Pólizas y XML en CONTPAQi</div>
+    <h1>¿Por qué los XML no se asocian solos a la póliza?</h1>
+    <p class="lede">Al contabilizar desde el Sistema de Viáticos la póliza se crea sola, pero las facturas hay que asociarlas en CONTPAQi. Aquí está la explicación, lo que comprobé en producción, lo que revisé de CONTPAQi y por qué el flujo actual es la mejor opción disponible.</p>
+    <div class="meta">
+      <span>3 de noviembre de 2026</span>
+      <span>Preparó: <b>Víctor Hugo Morales</b>, desarrollo del Sistema de Viáticos</span>
+    </div>
+  </header>
+
+  <div class="answer">
+    <div class="eyebrow">La respuesta corta</div>
+    <ol>
+      <li><b>CONTPAQi solo muestra una factura en "CFDI Relacionados" cuando se asocia desde la póliza en CONTPAQi Contabilidad.</b> Al hacerlo, CONTPAQi crea un registro propio, el documento administrativo, con datos fiscales de la factura.</li>
+      <li><b>Ningún programa externo puede crear ese registro.</b> La herramienta oficial que CONTPAQi da para conectarse (el SDK) no tiene esa función en ninguna versión publicada, incluida la más reciente.</li>
+      <li><b>No depende de si el XML ya está en el ADD.</b> Lo comprobé: con los XML ya cargados, el sistema registra la póliza y la asociación que el SDK sí permite, pero CONTPAQi no muestra la factura hasta que alguien la asocia desde la póliza.</li>
+    </ol>
+  </div>
+
+  <section id="flujo">
+    <div class="section-head">
+      <div class="eyebrow">Qué pasa al presionar Contabilizar</div>
+      <h2>Hasta dónde llega el sistema</h2>
+    </div>
+    <div class="flow">
+      <div class="lane sistema">
+        <div class="lane-title">Lo hace el Sistema de Viáticos</div>
+        <div class="step"><span class="ic ok" aria-hidden="true">✓</span><div><b>Crea la póliza en CONTPAQi</b><small>Con sus movimientos, conceptos y segmentos según el modelo de póliza.</small></div></div>
+        <div class="step"><span class="ic ok" aria-hidden="true">✓</span><div><b>Liga el folio fiscal de cada XML</b><small>A la póliza y a sus movimientos. Solo funciona si el XML ya está en el ADD.</small></div></div>
+        <div class="step"><span class="ic ok" aria-hidden="true">✓</span><div><b>Avisa qué falta</b><small>Mensaje al contabilizar y lista "XML por asociar en CONTPAQi".</small></div></div>
+      </div>
+      <div class="wall" aria-hidden="true">
+        <div class="bar"></div>
+        <span>El SDK no puede pasar de aquí</span>
+      </div>
+      <div class="lane contpaqi">
+        <div class="lane-title">Solo lo hace CONTPAQi</div>
+        <div class="step"><span class="ic hand" aria-hidden="true">F9</span><div><b>Asociar el CFDI desde la póliza</b><small>ADD → "Asociar uno o más CFDI a la póliza".</small></div></div>
+        <div class="step"><span class="ic hand" aria-hidden="true">✓</span><div><b>Crea el documento administrativo</b><small>Con el proveedor y el tipo de operación, que alimentan el control de IVA y la DIOT.</small></div></div>
+        <div class="step"><span class="ic hand" aria-hidden="true">✓</span><div><b>La factura aparece en "CFDI Relacionados"</b><small>Después, en el sistema se presiona "Ya los asocié" y se verifica.</small></div></div>
+      </div>
+    </div>
+    <p class="flow-note">La liga que hace el sistema no se pierde: CONTPAQi la reutiliza cuando se asocia la factura en la póliza. Lo que no puede hacer el sistema es el último paso.</p>
+  </section>
+
+  <section id="evidencia">
+    <div class="section-head">
+      <div class="eyebrow">Comprobado en producción</div>
+      <h2>Lo que vi en la base de CONTPAQi</h2>
+      <p>Revisé directamente la base de la empresa (Savare Medika, <span class="mono">ct2024_Savare</span>), solo con consultas de lectura.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Comprobación</th><th>XML en el ADD al contabilizar</th><th>Liga hecha por el sistema</th><th>Documento administrativo</th><th>Se ve en la póliza</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">CG6340 · póliza 3,289<br><small>Contabilizada el 3/11/2026</small></th><td><span class="mk ok">✓</span>Sí, verificado antes de contabilizar</td><td><span class="mk ok">✓</span>Las 5 facturas, con la póliza y sus movimientos</td><td><span class="mk bad">✕</span>Ninguno</td><td><span class="mk bad">✕</span>No, falta asociarla</td></tr>
+          <tr><th scope="row">CG6330 · póliza 3,268</th><td><span class="mk ok">✓</span>Sí</td><td><span class="mk ok">✓</span>Sí</td><td><span class="mk ok">✓</span>10, creados al asociar a mano</td><td><span class="mk ok">✓</span>Sí</td></tr>
+          <tr><th scope="row">CGSA3215 · póliza 2,246<br><small>Diciembre 2025</small></th><td><span class="mk ok">✓</span>Sí</td><td><span class="mk ok">✓</span>Sí</td><td><span class="mk ok">✓</span>1</td><td><span class="mk ok">✓</span>Sí</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">La única diferencia entre las que se ven y la que no es el documento administrativo, y ese registro solo lo crea CONTPAQi al asociar desde la póliza. CGSA3215 era el ejemplo de "sí funcionaba antes": también tiene el suyo.</p>
+
+    <ol class="timeline">
+      <li><time>29/10/2026</time><p><b>CGSA5796 (póliza 3,848):</b> el sistema la registró con el XML en el ADD y la factura no apareció. Al asociarla a mano en CONTPAQi, apareció.</p></li>
+      <li><time>29/10/2026</time><p><b>CG6277:</b> probé marcar la factura como asociada directamente en el ADD. No bastó y lo revertí.</p></li>
+      <li><time>29/10/2026</time><p><b>CG6267 (póliza 3,255):</b> agregar facturas a una liga existente con el SDK respondía bien pero no las guardaba. Lo corregí en el sistema.</p></li>
+      <li><time>3/11/2026</time><p><b>CG6340 (póliza 3,289):</b> hice una prueba en vivo con los 5 XML cargados en el ADD antes de contabilizar. Mismo resultado: póliza y ligas creadas, factura sin aparecer.</p></li>
+    </ol>
+  </section>
+
+  <section id="contpaqi">
+    <div class="section-head">
+      <div class="eyebrow">Lo que revisé de CONTPAQi</div>
+      <h2>Ninguna versión lo permite</h2>
+    </div>
+    <div class="facts">
+      <div class="fact"><span class="k">Versión instalada del SDK</span><span class="v">19.0.1</span><p>La que usa el servidor del Sistema de Viáticos.</p></div>
+      <div class="fact"><span class="k">CONTPAQi Contabilidad más reciente</span><span class="v">19.3.1</span><p>Publicada el 5 de agosto de 2026.</p></div>
+      <div class="fact"><span class="k">SDK más reciente</span><span class="v">Service Pack 19</span><p>2 de junio de 2026. Solo corrige un error al contabilizar desde CONTPAQi Comercial.</p></div>
+    </div>
+    <ul class="list">
+      <li>En las cartas y notas técnicas publicadas de las versiones 17 a 19.3.1 no encontré ninguna función para que otro sistema cree documentos administrativos ni asocie CFDI como lo hace la pantalla de pólizas.</li>
+      <li>Revisé una por una las funciones del SDK instalado. Para facturas solo existe la liga del folio fiscal, que el sistema ya usa. Las demás son de catálogos, cuentas, control de IVA y AdminPAQ.</li>
+      <li>El documento administrativo, según la propia carta técnica de CONTPAQi, se genera al seleccionar el CFDI dentro de CONTPAQi.</li>
+    </ul>
+    <blockquote>
+      <p>"Los CFDI no se contabilizan de forma automática."</p>
+      <cite>Carta técnica 16.0.3 de CONTPAQi, sobre la contabilización desde su propio producto CONTPAQi Viáticos. Incluso con su sistema de viáticos, la persona elige la comprobación desde la póliza.</cite>
+    </blockquote>
+  </section>
+
+  <section id="alternativas">
+    <div class="section-head">
+      <div class="eyebrow">Alternativas</div>
+      <h2>Lo que evalué para evitar el paso manual</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Opción</th><th>Resultado</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Ligar los XML con el SDK al contabilizar</th><td><span class="pill bad">No basta</span></td><td>Es lo que el sistema ya hace. CONTPAQi guarda la liga pero no muestra la factura.</td></tr>
+          <tr><th scope="row">Actualizar a una versión más nueva del SDK</th><td><span class="pill bad">No existe</span></td><td>Ninguna versión publicada tiene la función.</td></tr>
+          <tr><th scope="row">Marcar la factura como asociada en el ADD</th><td><span class="pill bad">Probado, no funciona</span></td><td>Lo probé con CG6277 y lo revertí.</td></tr>
+          <tr><th scope="row">Escribir el documento administrativo directo en la base de CONTPAQi</th><td><span class="pill bad">Riesgoso</span></td><td>Lleva el proveedor y el tipo de operación, que alimentan el control de IVA y la DIOT. CONTPAQi no lo soporta y cualquier actualización puede dejar datos inconsistentes.</td></tr>
+          <tr><th scope="row">Un robot que use la pantalla de CONTPAQi en el servidor</th><td><span class="pill warn">Frágil</span></td><td>Necesita una sesión abierta en el servidor y una licencia de CONTPAQi, y se rompe con avisos inesperados o cambios de pantalla. Cada falla deja asociaciones a medias que hay que revisar a mano.</td></tr>
+          <tr><th scope="row">Generar las pólizas con el Contabilizador de CONTPAQi</th><td><span class="pill warn">No encaja</span></td><td>Arma pólizas por factura o por RFC, no por comprobación de viáticos. Cambiaría todo el proceso contable.</td></tr>
+          <tr><th scope="row">Importar la póliza por archivo de texto con los folios fiscales</th><td><span class="pill acc">Por confirmar</span></td><td>Pendiente de confirmar con soporte de CONTPAQi. Aun si funcionara, alguien tendría que importar el archivo en CONTPAQi: seguiría siendo un paso manual.</td></tr>
+          <tr class="actual"><th scope="row">Flujo actual: el sistema registra y avisa; Contabilidad asocia en CONTPAQi y confirma</th><td><span class="pill ok">Elegido</span></td><td>Es el único camino soportado por CONTPAQi y deja a Contabilidad el control de los datos fiscales.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="por-que">
+    <div class="section-head">
+      <div class="eyebrow">Por qué el flujo actual</div>
+      <h2>La mejor opción disponible hoy</h2>
+    </div>
+    <div class="reasons">
+      <div class="reason"><h3>Usa solo lo que CONTPAQi soporta</h3><p>Nada se escribe a escondidas en la base de CONTPAQi. Las actualizaciones de CONTPAQi no lo rompen.</p></div>
+      <div class="reason"><h3>Contabilidad decide los datos fiscales</h3><p>El proveedor y el tipo de operación que van a IVA y DIOT los confirma quien sabe, al asociar.</p></div>
+      <div class="reason"><h3>Nada se pierde</h3><p>Cada XML queda en la lista "XML por asociar en CONTPAQi" con su póliza, factura y folio fiscal hasta que se confirma.</p></div>
+      <div class="reason"><h3>Se verifica contra CONTPAQi</h3><p>"Ya los asocié" revisa en CONTPAQi que la factura correcta quedó en la póliza correcta. Si no, la deja pendiente.</p></div>
+    </div>
+    <p class="table-note">Si CONTPAQi publica una forma oficial de hacerlo, la incorporaré al sistema.</p>
+  </section>
+
+  <section id="consejos">
+    <div class="section-head">
+      <div class="eyebrow">Para que salga bien</div>
+      <h2>Lo que encontré en la revisión del 3 de noviembre</h2>
+    </div>
+    <div class="cases">
+      <div class="case">
+        <h3>Asociadas pero sin confirmar</h3>
+        <span class="who">CG6330 · Alexis Zuriel López Primo · póliza 3,268</span>
+        <p>Cuatro facturas ya estaban asociadas en CONTPAQi, pero seguían en la lista porque no se presionó "Ya los asocié".</p>
+        <p class="fix">Después de asociar en CONTPAQi, regresa a la lista, selecciónalas y presiona "Ya los asocié".</p>
+      </div>
+      <div class="case">
+        <h3>Se asoció otra factura</h3>
+        <span class="who">CG6306 · Joel Arturo Olivas Espino · póliza 3,281</span>
+        <p>En la póliza quedó asociada una factura de CGSA2148 (enero), no la de la comprobación. Por eso "Ya los asocié" no la encontró.</p>
+        <p class="fix">Antes de asociar, compara el folio fiscal: cópialo con el botón de la lista y fíltralo en el visor de CONTPAQi.</p>
+      </div>
+    </div>
+    <div class="cta">
+      <span>Paso a paso con capturas:</span>
+      <a href="/proyectos/savaremedika-viaticos/docs/asociar-xml">Cómo asociar los XML en CONTPAQi</a>
+    </div>
+  </section>
+
+  <details>
+    <summary>Detalle técnico</summary>
+    <div class="prose">
+      <ul class="list">
+        <li>La liga del SDK (<span class="mono">TSdkAsocCFDI</span>) se guarda en la tabla <span class="mono">AsocCFDIs</span> de la empresa. Funciona solo si el UUID está en el ADD; si no, el SDK responde error y el sistema lo registra en el motivo.</li>
+        <li>Al asociar desde la póliza, CONTPAQi crea registros en <span class="mono">DocumentosAdministrativos</span> y <span class="mono">AsocDoctosAdministrativos</span> (UUID con el GUID de la póliza) y marca el comprobante en el ADD. "CFDI Relacionados" se basa en esos registros.</li>
+        <li>CG6340: liga del SDK presente en <span class="mono">AsocCFDIs</span> para las 5 facturas con la póliza y sus movimientos; sin registros en <span class="mono">AsocDoctosAdministrativos</span>.</li>
+        <li>CG6306: la póliza 3,281 tiene en <span class="mono">AsocDoctosAdministrativos</span> la factura <span class="mono">257daa82…</span>, que también está ligada a la póliza 2,318 de CGSA2148; la factura de la comprobación es <span class="mono">1a3705b3…</span>.</li>
+        <li>Clases de CFDI en el SDK 19.0.1: solo <span class="mono">TSdkAsocCFDI</span> (crea, modifica, borra y consulta ligas por UUID). No hay clases para documentos administrativos ni para importar comprobantes del ADD.</li>
+        <li>"Ya los asocié" busca el UUID y el GUID de la póliza en <span class="mono">AsocDoctosAdministrativos</span>.</li>
+      </ul>
+    </div>
+  </details>
+
+  <section id="fuentes">
+    <div class="section-head">
+      <div class="eyebrow">Fuentes</div>
+    </div>
+    <ul class="sources">
+      <li><a href="https://conocimiento.blob.core.windows.net/conocimiento/2020/Contables/ContabilidadBancos/CartasTecnicas/CT_Contabilidad_Bancos_1202/documento_administrativo.html">Carta técnica CONTPAQi 12.0.2: Documento administrativo</a></li>
+      <li><a href="https://conocimiento.blob.core.windows.net/conocimiento/2023/Contables/ContabilidadBancos/CartasTecnicas/CT_Contabilidad_Bancos_1603/contabilizacion_desde_la_poliza.html">Carta técnica CONTPAQi 16.0.3: Contabilización desde la póliza (CONTPAQi Viáticos)</a></li>
+      <li><a href="https://conocimiento.blob.core.windows.net/conocimiento/2019/Contables/ContabilidadBancos/CartasTecnicas/CT_Contabilidad_Bancos_1152/asociacion_de_cfdi.html">Carta técnica CONTPAQi 11.5.2: Asociación de CFDI</a></li>
+      <li><a href="https://contenidos.contpaqi.com/contabilidad">CONTPAQi Contabilidad: cartas y notas técnicas (versiones 17 a 19.3.1, Service Pack SDK 19)</a></li>
+      <li><a href="https://old.contpaqi.com/descargas">Descargas de CONTPAQi</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    <img src="/proyectos/savaremedika-viaticos/docs/img/icono-savare.png" alt="" width="28" height="28">
+    <p>Documento interno de Savare Medika · Sistema de Viáticos. Para dudas sobre este tema, escríbeme a <a href="mailto:contacto@victormorales.dev">contacto@victormorales.dev</a>.</p>
+  </footer>
+
+</div>
+</body>
+</html>

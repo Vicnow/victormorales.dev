@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cómo asociar los XML en CONTPAQi</title>
+<meta name="description" content="Guía paso a paso para asociar los XML de una comprobación a su póliza en CONTPAQi Contabilidad.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/proyectos/savaremedika-viaticos/docs/img/icono-savare.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto+Mono:wght@400;500&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout: membrete Savare Medika + columna de lectura (~740px); las capturas se abren al ancho completo (~1000px). Colores del Sistema de Viáticos, iguales a la guía "Pólizas y XML en CONTPAQi". */
+:root {
+  --bg: #F3F6F9;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2F6;
+  --ink: #0F172A;
+  --muted: #51607A;
+  --line: #D5DEE8;
+  --brand-gradient: linear-gradient(109.6deg, #13A468 11.2%, #08699D 91.1%);
+  --on-brand: #FFFFFF;
+  --green-text: #0A7A4C;
+  --accent: #125094;
+  --accent-soft: #E5EEF8;
+  --ok: #0A7A4C;
+  --ok-soft: #E1F4EA;
+  --warn: #8F5B05;
+  --warn-soft: #FAEFD8;
+  --font-display: "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1322; --surface: #131F35; --surface-2: #1A2842; --ink: #E5ECF5; --muted: #94A3B8; --line: #25344D;
+    --green-text: #4ADE80; --accent: #6FA8E6; --accent-soft: #162A45; --ok: #4ADE80; --ok-soft: #12301F;
+    --warn: #E3AE4F; --warn-soft: #33270F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1322; --surface: #131F35; --surface-2: #1A2842; --ink: #E5ECF5; --muted: #94A3B8; --line: #25344D;
+  --green-text: #4ADE80; --accent: #6FA8E6; --accent-soft: #162A45; --ok: #4ADE80; --ok-soft: #12301F;
+  --warn: #E3AE4F; --warn-soft: #33270F;
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 36px 64px;
+  display: grid;
+  gap: 56px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 600; }
+h2 { font-size: 1.6rem; font-weight: 600; }
+h3 { font-size: 1.12rem; font-weight: 600; }
+p { margin: 0; }
+b, strong { font-weight: 600; }
+.mono { font-family: var(--font-mono); font-size: 0.88em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.eyebrow { font-family: var(--font-display); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green-text); }
+.crumb { font-family: var(--font-display); font-weight: 600; color: var(--ink); }
+
+/* Membrete */
+.letterhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-bottom: 16px; position: relative; }
+.letterhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 2px; background: var(--brand-gradient); }
+.letterhead .logo { display: block; height: 46px; width: auto; }
+.lh-meta { display: grid; justify-items: end; font-family: var(--font-display); font-size: 0.85rem; color: var(--muted); line-height: 1.35; }
+.lh-meta strong { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+
+header.top { display: grid; gap: 14px; }
+.lede { font-size: 1.12rem; max-width: 720px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.86rem; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 500; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+nav.toc a { font-size: 0.84rem; color: var(--ink); text-decoration: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; }
+nav.toc a:hover { border-color: var(--accent); color: var(--accent); }
+
+section { display: grid; gap: 18px; scroll-margin-top: 16px; min-width: 0; }
+.section-head { display: grid; gap: 8px; max-width: 740px; }
+.section-head > p { color: var(--muted); }
+.prose { display: grid; gap: 12px; max-width: 740px; }
+
+/* Etiqueta de paso: número + en qué programa se hace */
+.step-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.step-num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; background: var(--brand-gradient); color: var(--on-brand); flex: none; }
+.app { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.app.sv { background: var(--ok-soft); color: var(--ok); }
+.app.cq { background: var(--accent-soft); color: var(--accent); }
+
+/* Resumen del proceso */
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: paso; display: grid; gap: 10px; max-width: 760px; }
+ol.steps > li { counter-increment: paso; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px 12px 58px; position: relative; min-width: 0; display: grid; gap: 4px; }
+ol.steps > li::before { content: counter(paso); position: absolute; left: 16px; top: 12px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; background: var(--brand-gradient); color: var(--on-brand); }
+ol.steps .app { justify-self: start; }
+
+/* Ejemplo */
+.example { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; position: relative; overflow: hidden; }
+.example::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--brand-gradient); }
+.datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; margin: 0; }
+.datos dt { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.datos dd { margin: 2px 0 0; font-size: 0.95rem; }
+.facturas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.factura { background: var(--surface-2); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; font-size: 0.9rem; min-width: 0; font-variant-numeric: tabular-nums; }
+.factura .sf { font-family: var(--font-mono); font-weight: 500; font-size: 0.9rem; }
+.factura .det { color: var(--muted); font-size: 0.84rem; }
+
+/* Capturas */
+figure.shot { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.frame { padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.frame img { display: block; width: 100%; height: auto; border-radius: 5px; }
+figure.shot figcaption { font-size: 0.88rem; color: var(--muted); max-width: 740px; }
+.shot.narrow { max-width: 900px; }
+
+/* Subpasos con capturas intercaladas */
+ol.sub { margin: 0; padding: 0; list-style: none; counter-reset: sub; display: grid; gap: 18px; }
+ol.sub > li { counter-increment: sub; display: grid; gap: 12px; min-width: 0; }
+ol.sub > li > p { max-width: 740px; padding-left: 36px; position: relative; }
+ol.sub > li > p::before { content: counter(sub); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 0.82rem; color: var(--accent); background: var(--accent-soft); }
+
+/* Avisos */
+.note-ok, .note-warn { border-radius: 0 10px 10px 0; padding: 14px 18px; max-width: 740px; display: grid; gap: 4px; }
+.note-ok { border-left: 4px solid var(--ok); background: var(--ok-soft); }
+.note-ok strong { color: var(--ok); }
+.note-warn { border-left: 4px solid var(--warn); background: var(--warn-soft); }
+.note-warn strong { color: var(--warn); }
+.btn-name { font-family: var(--font-display); font-weight: 600; white-space: nowrap; }
+
+/* Tabla */
+.table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--font-display); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: none; }
+th[scope="row"] { font-weight: 500; white-space: nowrap; }
+
+/* Dudas frecuentes */
+.faq { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.faq-item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.faq-item p { color: var(--muted); font-size: 0.95rem; }
+
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; display: flex; gap: 14px; align-items: flex-start; max-width: 760px; }
+footer img { width: 28px; height: 28px; flex: none; }
+
+/* Impresión y PDF: siempre en claro, fondo blanco y sin cortar capturas ni avisos entre páginas */
+@page { size: letter; margin: 10mm 11mm; }
+@media print {
+  html:root:not([data-theme="ninguno"]) {
+    --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #EEF2F6; --ink: #0F172A; --muted: #51607A; --line: #D5DEE8;
+    --green-text: #0A7A4C; --accent: #125094; --accent-soft: #E5EEF8; --ok: #0A7A4C; --ok-soft: #E1F4EA;
+    --warn: #8F5B05; --warn-soft: #FAEFD8;
+    color-scheme: light;
+  }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 14px; }
+  .wrap { max-width: none; padding-block: 0; gap: 30px; }
+  h1 { font-size: 2.3rem; }
+  h2 { font-size: 1.4rem; }
+  .section-head, figure.shot, .note-ok, .note-warn, .example, ol.steps > li, .faq-item, tr, footer { break-inside: avoid; }
+  h1, h2, h3, .section-head, ol.sub > li > p { break-after: avoid; }
+  nav.toc a { text-decoration: none; }
+  /* Al partirse entre páginas, la rejilla encima bloques; en papel todo va en flujo normal */
+  .wrap, section, .section-head, .prose, ol.steps, ol.sub, ol.sub > li, figure.shot, .faq { display: block; }
+  .wrap > * + * { margin-top: 30px; }
+  section > * + * { margin-top: 14px; }
+  .section-head > * + * { margin-top: 6px; }
+  .prose > * + * { margin-top: 10px; }
+  ol.steps > li + li { margin-top: 8px; }
+  ol.sub > li { break-inside: avoid; }
+  ol.sub > li + li { margin-top: 14px; }
+  ol.sub > li > * + * { margin-top: 10px; }
+  figure.shot figcaption { margin-top: 6px; }
+  .faq { columns: 2; column-gap: 12px; }
+  .faq-item { display: block; margin: 0 0 10px; }
+  .faq-item h3 { margin-bottom: 4px; }
+  .wrap > footer { margin-top: 16px; padding-top: 10px; }
+}
+
+@media (max-width: 560px) {
+  .wrap { padding-block: 26px 48px; gap: 44px; }
+  .lh-meta { justify-items: start; }
+  .letterhead .logo { height: 38px; }
+  .frame { padding: 4px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="letterhead">
+    <img class="logo" src="/proyectos/savaremedika-viaticos/docs/img/logo-savare.png" alt="Savare Medika" width="174" height="46">
+    <div class="lh-meta">
+      <strong>Sistema de Viáticos</strong>
+      <span>Documento interno</span>
+    </div>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">Guía para usuarios</div>
+    <h1>Cómo asociar los XML en CONTPAQi</h1>
+    <p class="lede">Al contabilizar una comprobación, el sistema registra la póliza en CONTPAQi. Cada factura (XML) se asocia a esa póliza a mano desde CONTPAQi Contabilidad: el sistema avisa cuáles faltan y da los datos para encontrarlas. Toma un par de minutos por póliza.</p>
+    <div class="meta">
+      <span>30 de octubre de 2026</span>
+      <span>Preparó: <b>Víctor Hugo Morales</b>, Sistema de Viáticos</span>
+    </div>
+    <nav class="toc" aria-label="Contenido">
+      <a href="#resumen">Resumen</a>
+      <a href="#ejemplo">Ejemplo</a>
+      <a href="#paso-1">1. Contabilizar</a>
+      <a href="#paso-2">2. La lista</a>
+      <a href="#paso-3">3. Abrir la póliza</a>
+      <a href="#paso-4">4. Asociar</a>
+      <a href="#paso-5">5. Ya los asocié</a>
+      <a href="#no-aparece">Si no aparece</a>
+      <a href="#dudas">Dudas frecuentes</a>
+    </nav>
+  </header>
+
+  <section id="resumen">
+    <div class="section-head">
+      <div class="eyebrow">Resumen</div>
+      <h2>El proceso en cinco pasos</h2>
+    </div>
+    <ol class="steps">
+      <li><span class="app sv">Sistema de Viáticos</span><span>Contabiliza la comprobación. El aviso dice cuántos XML faltan por asociar.</span></li>
+      <li><span class="app sv">Sistema de Viáticos</span><span>En <span class="crumb">Auditoría › XML por asociar en CONTPAQi</span> toma la póliza y los datos de cada factura.</span></li>
+      <li><span class="app cq">CONTPAQi</span><span>Abre esa póliza.</span></li>
+      <li><span class="app cq">CONTPAQi</span><span>Con <b>ADD › Asociar uno o más CFDI a la póliza</b>, busca cada factura y presiona <b>Asociar</b>.</span></li>
+      <li><span class="app sv">Sistema de Viáticos</span><span>Regresa a la lista, selecciona las facturas y presiona <b>Ya los asocié</b>.</span></li>
+    </ol>
+  </section>
+
+  <section id="ejemplo">
+    <div class="section-head">
+      <div class="eyebrow">Ejemplo de esta guía</div>
+      <h2>Comprobación CGSA5905</h2>
+      <p>Todas las capturas son de esta comprobación sin anticipo, con dos facturas.</p>
+    </div>
+    <div class="example">
+      <dl class="datos">
+        <div><dt>Comprobación</dt><dd>CGSA5905 · TIZATL VERA JOEL · $1,430.84</dd></div>
+        <div><dt>Póliza en CONTPAQi</dt><dd>Póliza de comprobación No. 3,852 · 20/10/2026</dd></div>
+      </dl>
+      <div class="facturas">
+        <div class="factura"><span class="sf">CL4-115849</span><span>SERVICIO CLAVERIA · $375.84</span><span class="det">16/10/2026 · RFC SCL020611NB8</span></div>
+        <div class="factura"><span class="sf">4KHGFCI-113912</span><span>HOME DEPOT MEXICO · $1,055.00</span><span class="det">12/10/2026 · RFC HDM001017AS1</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="paso-1">
+    <div class="section-head">
+      <div class="step-tag"><span class="step-num">1</span><span class="app sv">Sistema de Viáticos</span></div>
+      <h2>Contabiliza como siempre</h2>
+      <p>En «Comprobación de Viáticos» (con o sin anticipo), selecciona la comprobación en estado «Aprobado para contabilizar» y presiona <span class="btn-name">Contabilizar</span>.</p>
+    </div>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/01-contabilizar.jpg" width="1568" height="144" alt="Comprobación CGSA5905 seleccionada, en estado Aprobado para contabilizar, con el botón Contabilizar en la barra"></div>
+      <figcaption>CGSA5905 seleccionada y el botón Contabilizar.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>Al terminar aparece un aviso naranja con cuántos XML faltan y de qué folios. Presiona <span class="btn-name">Ver XML por asociar</span> para ir directo a la lista.</p>
+    </div>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/02-aviso.jpg" width="1568" height="613" alt="Aviso naranja: Pólizas registradas en CONTPAQi. Falta asociar a mano 2 XML a su póliza en CONTPAQi (CGSA5905), con el botón Ver XML por asociar"></div>
+      <figcaption>El aviso de CGSA5905: faltan 2 XML. En la columna Pólizas ya aparece el número 3852.</figcaption>
+    </figure>
+    <div class="note-ok">
+      <strong>El aviso no es un error.</strong>
+      <p>La póliza ya quedó registrada en CONTPAQi y no hay que volver a contabilizar. Solo falta ligarle las facturas.</p>
+    </div>
+  </section>
+
+  <section id="paso-2">
+    <div class="section-head">
+      <div class="step-tag"><span class="step-num">2</span><span class="app sv">Sistema de Viáticos</span></div>
+      <h2>Revisa la lista «XML por asociar en CONTPAQi»</h2>
+      <p>Está en el menú lateral, en <span class="crumb">Auditoría › XML por asociar en CONTPAQi</span>. Cada renglón es una factura; una comprobación con dos facturas ocupa dos renglones. Arriba puedes buscar, por ejemplo por el folio de la comprobación, y filtrar por tipo de comprobación o por fecha de la póliza.</p>
+    </div>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/03-lista.jpg" width="1568" height="619" alt="Lista XML por asociar en CONTPAQi buscando CGSA5905: dos renglones con la póliza de comprobación 3,852 y las facturas CL4-115849 y 4KHGFCI-113912"></div>
+      <figcaption>La lista con las dos facturas de CGSA5905. Arriba vienen los mismos pasos de esta guía, en corto.</figcaption>
+    </figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Columna</th><th>Para qué sirve</th><th>En el ejemplo</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Póliza en CONTPAQi</th><td>Tipo, número y fecha para abrir la póliza (paso 3)</td><td>Póliza de comprobación No. 3,852, 20/10/2026</td></tr>
+          <tr><th scope="row">Factura</th><td>Serie-folio, emisor y RFC para encontrarla en CONTPAQi (paso 4)</td><td>CL4-115849, SERVICIO CLAVERIA</td></tr>
+          <tr><th scope="row">Fecha y total</th><td>El rango de fechas para buscarla y el importe para confirmar que es la correcta</td><td>16/10/2026, $375.84</td></tr>
+          <tr><th scope="row">Folio fiscal (UUID)</th><td>El folio fiscal de la factura; el botón de al lado lo copia</td><td class="mono">8D52F2F3-A30A-…</td></tr>
+          <tr><th scope="row">Botón de descarga</th><td>El archivo XML, por si la factura no aparece en CONTPAQi</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="paso-3">
+    <div class="section-head">
+      <div class="step-tag"><span class="step-num">3</span><span class="app cq">CONTPAQi Contabilidad</span></div>
+      <h2>Abre la póliza</h2>
+      <p>Entra a <span class="crumb">Pólizas › Pólizas</span>. Elige el <b>Tipo</b> (Póliza de comprobación), una <b>Fecha</b> del periodo (20/10/26) y el <b>Número</b> que indica la lista (3,852). Si aparece un aviso informativo del periodo, presiona Aceptar.</p>
+    </div>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/04-poliza-sin-cfdi.jpg" width="1568" height="733" alt="Póliza de comprobación 3,852 del 20/10/26 en CONTPAQi, concepto CGSA5905 - TIZATL VERA JOEL, con la pestaña CFDI Relacionados vacía"></div>
+      <figcaption>Para confirmar que es la correcta: el concepto empieza con el folio de la comprobación (CGSA5905 - TIZATL VERA JOEL) y la pestaña <b>1. CFDI Relacionados</b> todavía está vacía.</figcaption>
+    </figure>
+  </section>
+
+  <section id="paso-4">
+    <div class="section-head">
+      <div class="step-tag"><span class="step-num">4</span><span class="app cq">CONTPAQi Contabilidad</span></div>
+      <h2>Asocia cada factura desde ADD</h2>
+    </div>
+    <ol class="sub">
+      <li>
+        <p>En la barra de la póliza presiona <span class="btn-name">ADD</span> y elige <b>Asociar uno o más CFDI a la póliza</b> (o presiona F9).</p>
+        <figure class="shot narrow">
+          <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/05-menu-add.jpg" width="1385" height="396" alt="Menú del botón ADD abierto con la opción Asociar uno o más CFDI a la póliza (F9)"></div>
+        </figure>
+      </li>
+      <li>
+        <p>Se abre el visor de XML recibidos, en <b>Facturas</b>. En <b>Fecha</b> pon un rango que incluya la fecha de la factura; en el ejemplo, del 01/10/2026 al 31/10/2026.</p>
+      </li>
+      <li>
+        <p>En el renglón de filtros, debajo de <b>Folio</b>, escribe el folio de la factura (115849). Selecciona el renglón, revisa que coincidan el emisor y el total, y presiona <span class="btn-name">Asociar</span>.</p>
+        <figure class="shot">
+          <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/06-visor.jpg" width="1568" height="162" alt="Visor de XML recibidos filtrado por el folio 115849 del 01/10/2026 al 31/10/2026, con la factura de SERVICIO CLAVERIA por 375.84 seleccionada y el botón Asociar en la barra"></div>
+          <figcaption>Filtro por folio 115849 y la factura de SERVICIO CLAVERIA seleccionada. Al presionar Asociar, abajo «Documentos Asociados» sube a 1.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <p>Repite con las demás facturas de la misma póliza: con 4KHGFCI-113912, «Documentos Asociados» queda en 2. Al terminar presiona <span class="btn-name">Cerrar</span>.</p>
+      </li>
+      <li>
+        <p>De regreso en la póliza, la pestaña <b>1. CFDI Relacionados</b> muestra las facturas con ✓ en «Relacionado». Si no aparecen, presiona <span class="btn-name">Actualizar</span>.</p>
+        <figure class="shot">
+          <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/07-poliza-con-cfdi.jpg" width="1543" height="769" alt="Póliza 3,852 con las dos facturas, CL4 115849 y 4KHGFCI 113912, en la pestaña CFDI Relacionados con la marca de Relacionado"></div>
+          <figcaption>Las dos facturas de CGSA5905 ya aparecen en la póliza 3,852.</figcaption>
+        </figure>
+      </li>
+    </ol>
+    <div class="note-ok">
+      <strong>No hace falta guardar la póliza otra vez.</strong>
+      <p>La asociación queda guardada al presionar Asociar.</p>
+    </div>
+  </section>
+
+  <section id="paso-5">
+    <div class="section-head">
+      <div class="step-tag"><span class="step-num">5</span><span class="app sv">Sistema de Viáticos</span></div>
+      <h2>Confirma con «Ya los asocié»</h2>
+      <p>Regresa a «XML por asociar en CONTPAQi», marca los renglones que asociaste y presiona <span class="btn-name">Ya los asocié</span>. El sistema revisa en CONTPAQi que cada factura esté ligada a su póliza.</p>
+    </div>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/08-seleccion.jpg" width="1568" height="773" alt="Las dos facturas de CGSA5905 marcadas, 2 seleccionados, con el botón Ya los asocié activo"></div>
+      <figcaption>Las dos facturas marcadas y el botón Ya los asocié.</figcaption>
+    </figure>
+    <figure class="shot">
+      <div class="frame"><img src="/proyectos/savaremedika-viaticos/docs/img/09-exito.jpg" width="1414" height="528" alt="Mensaje verde: 2 XML ya aparecen asociados en CONTPAQi y salieron de la lista. La lista queda sin pendientes"></div>
+      <figcaption>Si todo está bien aparece «2 XML ya aparecen asociados en CONTPAQi y salieron de la lista», y los renglones desaparecen.</figcaption>
+    </figure>
+    <div class="note-warn">
+      <strong>Si sale «XML sin asociar en CONTPAQi»</strong>
+      <p>Alguna factura todavía no está ligada a su póliza; el mensaje dice cuáles. Presiona <span class="btn-name">Revisar en CONTPAQi</span> y repite el paso 4 con esas facturas.</p>
+    </div>
+  </section>
+
+  <section id="no-aparece">
+    <div class="section-head">
+      <div class="eyebrow">Si la factura no aparece en el visor</div>
+      <h2>Cárgala desde el sistema</h2>
+      <p>Primero revisa que el rango de <b>Fecha</b> del visor incluya la fecha de la factura y que no haya otro filtro escrito. Si aun así no aparece, CONTPAQi todavía no la tiene:</p>
+    </div>
+    <ol class="sub">
+      <li><p>En la lista del sistema presiona el botón de descarga del renglón. Para varias facturas, márcalas y usa <span class="btn-name">Descargar XML (ZIP)</span>; descomprime el ZIP antes de cargarlas.</p></li>
+      <li><p>En el visor de CONTPAQi presiona <span class="btn-name">Cargar XML</span> y elige el archivo.</p></li>
+      <li><p>Cuando la factura aparezca en el visor, asóciala como en el paso 4.</p></li>
+    </ol>
+  </section>
+
+  <section id="dudas">
+    <div class="section-head">
+      <div class="eyebrow">Dudas frecuentes</div>
+      <h2>Preguntas comunes</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item">
+        <h3>No veo «XML por asociar en CONTPAQi» o la pantalla se ve como antes</h3>
+        <p>Cierra todas las pestañas del Sistema de Viáticos y vuelve a abrirlo, porque el navegador guarda la versión anterior. Si sigue igual, presiona Ctrl+Shift+R. La opción aparece para los roles Administrador, Supervisor, Contabilidad y Aprobador+Contabilidad.</p>
+      </div>
+      <div class="faq-item">
+        <h3>La lista no carga o marca error</h3>
+        <p>Casi siempre es la sesión vencida. Cierra sesión con el botón de salida, arriba a la derecha, y vuelve a entrar.</p>
+      </div>
+      <div class="faq-item">
+        <h3>¿Qué hace «Marcar de todos modos»?</h3>
+        <p>Quita el XML de la lista aunque el sistema no lo encuentre en CONTPAQi, y deja registrado quién lo marcó y cuándo. Úsalo solo si ves la factura en «CFDI Relacionados» de la póliza y el sistema no la encuentra, por ejemplo cuando el mensaje dice «No se pudo revisar en CONTPAQi».</p>
+      </div>
+      <div class="faq-item">
+        <h3>Una comprobación con varias facturas</h3>
+        <p>Cada factura es un renglón y todas van a la misma póliza. Asócialas una por una en el visor y al final márcalas juntas con «Ya los asocié».</p>
+      </div>
+      <div class="faq-item">
+        <h3>¿Aparecen comprobaciones de días anteriores?</h3>
+        <p>Sí. La lista incluye todas las comprobaciones contabilizadas que todavía tienen facturas por asociar, sin importar cuándo se contabilizaron. Se resuelven igual.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <img src="/proyectos/savaremedika-viaticos/docs/img/icono-savare.png" alt="" width="28" height="28">
+    <p>Documento interno de Savare Medika · Sistema de Viáticos. Para dudas sobre este proceso, escríbeme a <a href="mailto:contacto@victormorales.dev">contacto@victormorales.dev</a>.</p>
+  </footer>
+
+</div>
+</body>
+</html>
