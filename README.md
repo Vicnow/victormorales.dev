@@ -56,21 +56,25 @@ publica el build en S3 e invalida CloudFront. Las credenciales llegan por OIDC: 
      --template-file infra/github-deploy-role.yml \
      --stack-name victormorales-dev-deploy-role \
      --capabilities CAPABILITY_NAMED_IAM \
-     --parameter-overrides BucketName=TU_BUCKET DistributionId=TU_DISTRIBUCION CreateOidcProvider=false
+     --parameter-overrides BucketName=victormorales.dev DistributionId=ECPYZEUCX62R6 CreateOidcProvider=true
    ```
 
    El template ya apunta a [`Vicnow/victormorales.dev`](https://github.com/Vicnow/victormorales.dev)
-   (`GitHubOwner` y `GitHubRepo` por defecto); solo cámbialos si el repo se mueve o se renombra.
-   Usa `CreateOidcProvider=true` solo si tu cuenta todavía no tiene el proveedor `token.actions.githubusercontent.com`.
+   (`GitHubOwner`, `GitHubRepo` y sus IDs numéricos por defecto). GitHub firma el token con
+   `repo:Vicnow@36490268/victormorales.dev@1443640213:environment:production`; el rol acepta ese formato
+   y el clásico sin IDs.
+
+   > **Ojo:** en esta cuenta el stack fue quien creó el proveedor OIDC. Repite siempre
+   > `CreateOidcProvider=true` al actualizarlo; con `false`, CloudFormation borraría el proveedor.
 
 2. En GitHub, **Settings → Secrets and variables → Actions → Variables**, crea:
 
    | Variable | Valor |
    |---|---|
-   | `AWS_ROLE_ARN` | Output `RoleArn` del stack |
-   | `AWS_REGION` | La región donde vive el bucket |
-   | `S3_BUCKET` | Nombre del bucket |
-   | `CLOUDFRONT_DISTRIBUTION_ID` | ID de la distribución (`E…`) |
+   | `AWS_ROLE_ARN` | `arn:aws:iam::976975817312:role/victormorales.dev-deploy` (output `RoleArn`) |
+   | `AWS_REGION` | `us-east-1` |
+   | `S3_BUCKET` | `victormorales.dev` |
+   | `CLOUDFRONT_DISTRIBUTION_ID` | `ECPYZEUCX62R6` |
 
 3. Haz push a `main`. El job `deploy` corre en el environment `production`: ahí puedes exigir aprobación manual si quieres.
 

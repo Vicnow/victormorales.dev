@@ -12,6 +12,14 @@ Parameters:
     Type: String
     Default: victormorales.dev
     Description: Nombre del repositorio tal cual aparece en GitHub (con punto).
+  GitHubOwnerId:
+    Type: String
+    Default: '36490268'
+    Description: ID numérico del dueño (api.github.com/repos/OWNER/REPO → owner.id).
+  GitHubRepoId:
+    Type: String
+    Default: '1443640213'
+    Description: ID numérico del repositorio (api.github.com/repos/OWNER/REPO → id).
   BucketName:
     Type: String
     Description: Bucket privado de S3 que sirve el sitio.
@@ -60,7 +68,11 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
                 # Solo el environment "production" de este repo puede asumir el rol.
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}/${GitHubRepo}:environment:production
+                # GitHub firma el sub con IDs inmutables (owner@id/repo@id); se acepta también
+                # el formato clásico por si la cuenta vuelve a él.
+                token.actions.githubusercontent.com:sub:
+                  - !Sub repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepo}@${GitHubRepoId}:environment:production
+                  - !Sub repo:${GitHubOwner}/${GitHubRepo}:environment:production
       Policies:
         - PolicyName: publish-site
           PolicyDocument:
