@@ -9,6 +9,11 @@ export interface Role {
   company: string;
   points: string[];
   stack: string[];
+  /**
+   * Herramientas del Stack que usé en el puesto aunque no salgan en sus viñetas ni etiquetas.
+   * No se pintan en Experiencia: solo encienden la línea de tiempo del Stack.
+   */
+  uses?: string[];
   metrics?: Metric[];
 }
 
@@ -74,6 +79,7 @@ export const ROLES: Role[] = [
     period: 'Mayo 2025 – hoy',
     title: 'Full Stack Developer',
     company: 'Terra Energy',
+    uses: ['EC2', 'Docker', 'Git', 'GitHub', 'GitLab', 'Claude', 'Kiro', 'Ionic', 'Node.js', 'MySQL', 'TypeScript', 'Angular y AngularJS', 'APIs RESTful'],
     points: [
       'Diseñé desde cero la arquitectura serverless de Aurora, la nueva plataforma interna (~180 usuarios internos y ~4,500 clientes): Lambda con arquitectura hexagonal, API Gateway, Cognito, S3 y RDS. Migré la operación desde un monolito PHP/MySQL.',
       'Implementé la IA como metodología de desarrollo del equipo, con normativa de uso, agentes y subagentes. Los ciclos de desarrollo pasaron de ~2 meses a ~1 semana.',
@@ -87,6 +93,7 @@ export const ROLES: Role[] = [
     period: 'Octubre 2021 – abril 2025',
     title: 'Full Stack Developer',
     company: 'Ix Agency',
+    uses: ['Docker', 'Git', 'GitHub', 'Bitbucket', 'Tailwind', 'Node.js', 'MySQL', 'Angular y AngularJS', 'TypeScript', 'APIs RESTful', 'MongoDB'],
     points: [
       'Aplicación de escritorio y web para visualizar tableros de QlikView en Grupo Financiero Banorte, con Electron, Spring Boot, Angular 19 y MySQL.',
       'Aplicaciones web en AngularJS y Angular 12+ para Banorte y la Universidad Iberoamericana.',
@@ -99,6 +106,7 @@ export const ROLES: Role[] = [
     period: 'Noviembre 2020 – agosto 2022',
     title: 'Director de Proyectos de TI (freelance)',
     company: 'The Disruptor Agency',
+    uses: ['Git', 'GitHub', 'Tailwind', 'Node.js', 'MySQL', 'SQL Server', 'Angular y AngularJS', 'TypeScript'],
     points: [
       'Coordiné equipos de front-end en aplicaciones y sitios para Adidas, YouTube y Bitso.',
       'Planeé las fases de cada proyecto y di seguimiento a su rendimiento.',
@@ -109,6 +117,7 @@ export const ROLES: Role[] = [
     period: 'Agosto 2018 – agosto 2019',
     title: 'Frontend Web Developer',
     company: 'INFO 100',
+    uses: ['Git', 'GitHub', 'Tailwind', 'Node.js', 'MySQL', 'SQL Server', 'Angular y AngularJS', 'TypeScript'],
     points: ['Interfaces responsivas con HTML, CSS y JavaScript, en colaboración directa con el equipo de back-end.'],
     stack: ['HTML', 'CSS', 'JavaScript'],
   },
@@ -117,13 +126,13 @@ export const ROLES: Role[] = [
 export const STACK: StackGroup[] = [
   {
     name: 'Nube (AWS)',
-    items: ['Lambda', 'API Gateway', 'Cognito', 'S3', 'RDS', 'Aurora', 'DynamoDB', 'EC2', 'ECS', 'EKS', 'CloudFormation', 'Organizations'],
+    items: ['Lambda', 'API Gateway', 'Cognito', 'S3', 'RDS', 'EC2', 'CloudFormation', 'Organizations'],
   },
   { name: 'Arquitectura', items: ['Serverless', 'Hexagonal', 'Clean Architecture', 'Infraestructura como código'] },
-  { name: 'CI/CD y DevOps', items: ['GitHub Actions', 'Docker', 'Kubernetes', 'Git', 'GitHub', 'GitLab', 'Bitbucket'] },
-  { name: 'IA en el desarrollo', items: ['Claude', 'Kiro', 'Agentes y subagentes', 'Gestión de contexto', 'Normativa de uso'] },
-  { name: 'Frontend', items: ['Angular y AngularJS', 'Ionic', 'React', 'TypeScript', 'Tailwind'] },
-  { name: 'Backend y datos', items: ['Node.js', 'PHP', 'Java', 'C#', 'APIs RESTful', 'MySQL', 'SQL Server', 'MongoDB'] },
+  { name: 'CI/CD y DevOps', items: ['GitHub Actions', 'Docker', 'Git', 'GitHub', 'GitLab', 'Bitbucket'] },
+  { name: 'IA en el desarrollo', items: ['Claude', 'Kiro', 'Agentes y subagentes', 'Normativa de uso'] },
+  { name: 'Frontend', items: ['Angular y AngularJS', 'Ionic', 'TypeScript', 'Tailwind'] },
+  { name: 'Backend y datos', items: ['Node.js', 'PHP', 'Java', 'APIs RESTful', 'MySQL', 'SQL Server', 'MongoDB'] },
 ];
 
 export const CERTIFICATIONS: string[] = [

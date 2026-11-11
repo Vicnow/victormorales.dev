@@ -1,5 +1,99 @@
 :host { display: block; }
 
+/* ---------- Línea de tiempo (se queda arriba mientras recorres las herramientas) ---------- */
+
+.timeline {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0 calc(var(--gutter) * -1) 20px;
+  padding: 14px var(--gutter) 12px;
+  background: linear-gradient(180deg, var(--bg) 85%, rgb(11 17 27 / 0));
+}
+
+.track {
+  position: relative;
+  height: calc(var(--lanes) * 34px - 6px);
+}
+
+.span {
+  position: absolute;
+  top: calc(var(--lane) * 34px);
+  height: 28px;
+  min-width: 10px;
+  padding: 0 10px;
+  border: 1px solid rgb(141 184 224 / 0.2);
+  border-radius: 8px;
+  background: rgb(141 184 224 / 0.07);
+  color: var(--muted);
+  font: 500 0.75rem/26px var(--mono);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.35s, border-color 0.35s, color 0.35s, opacity 0.35s, box-shadow 0.35s;
+}
+
+.span-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.span:hover,
+.span[aria-pressed="true"] { border-color: rgb(141 184 224 / 0.45); color: var(--ink); }
+
+.span.is-lit {
+  border-color: rgb(79 209 161 / 0.7);
+  background: linear-gradient(90deg, rgb(79 143 203 / 0.55), rgb(79 209 161 / 0.55));
+  color: #fff;
+  box-shadow: 0 0 22px -4px rgb(79 209 161 / 0.55);
+}
+
+.span.is-dim { opacity: 0.3; }
+
+.years {
+  position: relative;
+  height: 22px;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.years span {
+  position: absolute;
+  top: 0;
+  padding: 5px 0 0 4px;
+  border-left: 1px solid var(--line);
+  color: var(--faint);
+  font: 400 0.6875rem/1 var(--mono);
+}
+
+/* En teléfonos, un año sí y uno no para que no se encimen. */
+@media (max-width: 559px) {
+  .years span:nth-child(even) { visibility: hidden; }
+  .span { padding: 0 6px; font-size: 0.6875rem; }
+}
+
+.caption {
+  min-height: 1.5em;
+  margin: 10px 0 0;
+  color: var(--faint);
+  font-size: 0.875rem;
+  transition: color 0.3s;
+}
+
+.is-active .caption { color: var(--muted); }
+.caption strong { color: var(--menta); font-weight: 600; }
+
+.on-touch { display: none; }
+
+@media (hover: none) {
+  .on-pointer { display: none; }
+  .on-touch { display: inline; }
+}
+
+/* ---------- Grupos ---------- */
+
 .groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
@@ -17,4 +111,33 @@ h3 {
   margin: 0 0 14px;
   color: var(--cielo);
   font: 500 0.8125rem/1.3 var(--mono);
+}
+
+.chips li { transition: border-color 0.3s, opacity 0.3s, background 0.3s, box-shadow 0.3s; }
+
+/* Las herramientas que salen en algún puesto se pueden explorar. */
+.chips li.has-use { cursor: pointer; }
+.chips li.has-use::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--menta);
+  opacity: 0.55;
+}
+
+.chips li[aria-pressed="true"] { border-color: var(--menta); }
+
+.chips li.is-lit {
+  border-color: rgb(79 209 161 / 0.7);
+  background: rgb(79 209 161 / 0.1);
+  box-shadow: 0 0 18px -6px rgb(79 209 161 / 0.6);
+}
+
+.chips li.is-lit app-tool-icon { color: var(--brand, var(--menta)); }
+.chips li.is-lit::after { opacity: 1; }
+.chips li.is-dim { opacity: 0.32; }
+
+@media (prefers-reduced-motion: reduce) {
+  .span, .chips li { transition: none; }
 }

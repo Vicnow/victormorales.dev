@@ -1,13 +1,74 @@
 <section class="section" id="stack">
   <div class="section-inner">
     <h2 class="section-title">Con qué trabajo</h2>
-    <div class="groups">
+
+    <div class="timeline" [class.is-active]="focus()">
+      <div class="track" [style.--lanes]="lanes">
+        @for (span of spans; track span.company) {
+          @let f = role(span);
+          <button
+            type="button"
+            class="span"
+            [style.left]="span.left"
+            [style.width]="span.width"
+            [style.--lane]="span.lane"
+            [class.is-lit]="litRoles()?.has(span.company)"
+            [class.is-dim]="litRoles() && !litRoles()!.has(span.company)"
+            [attr.aria-pressed]="isPinned(f)"
+            [attr.aria-label]="span.title + ' en ' + span.company + ', ' + span.years"
+            (mouseenter)="enter(f)"
+            (mouseleave)="leave()"
+            (focus)="enter(f)"
+            (blur)="leave()"
+            (click)="toggle(f)"
+          >
+            <span class="span-name">{{ span.company }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="years" aria-hidden="true">
+        @for (y of years; track y.year) {
+          <span [style.left]="y.left">{{ y.year }}</span>
+        }
+      </div>
+
+      <p class="caption" aria-live="polite">
+        @if (caption(); as c) {
+          <strong>{{ c.lead }}</strong> {{ c.rest }}
+        } @else {
+          <span class="on-pointer">Pasa el cursor por</span><span class="on-touch">Toca</span>
+          una herramienta para ver cuándo la usé, o un puesto para ver su stack.
+        }
+      </p>
+    </div>
+
+    <div class="groups" [class.is-active]="focus()">
       @for (group of groups; track group.name) {
         <div class="group">
           <h3>{{ group.name }}</h3>
           <ul class="chips">
             @for (item of group.items; track item) {
-              <li><app-tool-icon [tool]="item" />{{ item }}</li>
+              @if (usage[item].length) {
+                @let f = tool(item);
+                <li
+                  class="has-use"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-pressed]="isPinned(f)"
+                  [class.is-lit]="litTools()?.has(item)"
+                  [class.is-dim]="litTools() && !litTools()!.has(item)"
+                  (mouseenter)="enter(f)"
+                  (mouseleave)="leave()"
+                  (focus)="enter(f)"
+                  (blur)="leave()"
+                  (click)="toggle(f)"
+                  (keydown.enter)="toggle(f)"
+                  (keydown.space)="$event.preventDefault(); toggle(f)"
+                ><app-tool-icon [tool]="item" />{{ item }}</li>
+              } @else {
+                <li [class.is-dim]="litTools()"><app-tool-icon [tool]="item" />{{ item }}</li>
+              }
             }
           </ul>
         </div>
