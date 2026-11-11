@@ -28,6 +28,7 @@ src/app/
   journey/journey-store.ts   estado de la interfaz con signals
   journey/journey-scene.ts   escena Three.js + línea de tiempo (carga diferida)
 public/proyectos/              páginas HTML estáticas, fuera de Angular (se copian tal cual al build)
+public/prototipos/             prototipos de diseño autocontenidos (un index.html por prototipo)
 infra/github-deploy-role.yml   rol OIDC para GitHub Actions (CloudFormation)
 infra/url-rewrite.js           CloudFront Function: /ruta → /ruta/index.html
 .github/workflows/deploy.yml   build en PRs, deploy en main
@@ -42,6 +43,15 @@ infra/url-rewrite.js           CloudFront Function: /ruta → /ruta/index.html
 
 Comparten las imágenes de `docs/img/` y las referencian con rutas absolutas, porque la URL no lleva `/` final.
 Llevan `noindex` para que no aparezcan en buscadores.
+
+### Prototipos
+
+| URL | Archivo |
+|---|---|
+| `/prototipos/rampe` | `public/prototipos/rampe/index.html` (POS de RAMPE, 10 pantallas) |
+
+Son exports de diseño en un solo HTML que se desempaqueta en el navegador (necesita JavaScript).
+Llevan `noindex` y usan solo datos ficticios: revisa que no traigan datos reales de clientes antes de subirlos.
 
 `journey-scene.ts` se importa con `import()` dentro de `afterNextRender`: Three.js no entra
 en el bundle inicial y nunca corre durante el prerender.
@@ -58,7 +68,7 @@ el hero los muestra en el acto del deploy (GitHub → Actions → S3). En local 
 |---|---|---|
 | JS/CSS con hash | `max-age=31536000, immutable` | Cambian de nombre en cada build |
 | HTML y favicon | `max-age=0, s-maxage=86400` | El navegador revalida en cada visita (la escena mide un viaje real) y el edge lo guarda un día (HIT) |
-| Todo `proyectos/` | `max-age=0, s-maxage=86400` | Sus imágenes no llevan hash: pueden cambiar con el mismo nombre |
+| Todo `proyectos/` y `prototipos/` | `max-age=0, s-maxage=86400` | Sus archivos no llevan hash: pueden cambiar con el mismo nombre |
 
 > **Ojo:** el paso de limpieza usa `--delete`. Todo lo que esté en el bucket y no venga en el build se borra.
 > Si hoy guardas ahí algo más (un PDF, imágenes), muévelo a `public/` antes del primer deploy.
@@ -98,8 +108,8 @@ el hero los muestra en el acto del deploy (GitHub → Actions → S3). En local 
 
 ```bash
 npm run build
-aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*.html" --exclude "favicon.svg" --exclude "proyectos/*" --cache-control "public,max-age=31536000,immutable"
-aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*" --include "*.html" --include "favicon.svg" --include "proyectos/*" --exclude "index.csr.html" --cache-control "public,max-age=0,s-maxage=86400,must-revalidate"
+aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*.html" --exclude "favicon.svg" --exclude "proyectos/*" --exclude "prototipos/*" --cache-control "public,max-age=31536000,immutable"
+aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --exclude "*" --include "*.html" --include "favicon.svg" --include "proyectos/*" --include "prototipos/*" --exclude "index.csr.html" --cache-control "public,max-age=0,s-maxage=86400,must-revalidate"
 aws s3 sync dist/victormorales-dev/browser s3://TU_BUCKET --delete --exclude "index.csr.html"
 aws cloudfront create-invalidation --distribution-id TU_DISTRIBUCION --paths "/*"
 ```
