@@ -9,6 +9,7 @@ export interface Role {
   company: string;
   points: string[];
   stack: string[];
+  metrics?: Metric[];
 }
 
 export interface StackGroup {
@@ -21,6 +22,53 @@ export interface Entry {
   detail: string;
 }
 
+/** Cifras de un puesto, contadas en grande debajo de sus viñetas. */
+export interface Metric {
+  /** Valor final; el contador termina aquí. */
+  value: number;
+  /** Desde dónde arranca el contador (por defecto 0). */
+  from?: number;
+  prefix?: string;
+  unit: string;
+  label: string;
+  /** Color del acento (variable de styles.css). */
+  color: string;
+  /** Barra "antes vs. ahora" en la misma unidad que value. */
+  before?: { value: number; label: string };
+}
+
+const TERRA_METRICS: Metric[] = [
+  {
+    value: 7,
+    from: 60,
+    unit: 'días',
+    label: 'por ciclo de desarrollo',
+    color: 'var(--violeta)',
+    before: { value: 60, label: 'antes ~2 meses' },
+  },
+  {
+    value: 4500,
+    prefix: '~',
+    unit: 'clientes',
+    label: 'sobre una arquitectura serverless',
+    color: 'var(--cielo)',
+  },
+  {
+    value: 10,
+    prefix: '~',
+    unit: 'min',
+    label: 'de commit a producción',
+    color: 'var(--ambar)',
+  },
+  {
+    value: 0,
+    from: 0,
+    unit: 'incidentes',
+    label: 'en producción',
+    color: 'var(--menta)',
+  },
+];
+
 export const ROLES: Role[] = [
   {
     period: 'Mayo 2025 – hoy',
@@ -32,6 +80,7 @@ export const ROLES: Role[] = [
       'Infraestructura como código con CloudFormation sobre AWS Organizations y CI/CD con GitHub Actions: despliegues de ~10 minutos y cero incidentes en producción.',
       'Desarrollé el sitio corporativo terraenergy.mx en Angular y lo puse en producción sobre AWS.',
     ],
+    metrics: TERRA_METRICS,
     stack: ['Lambda · hexagonal', 'API Gateway', 'Cognito', 'S3', 'RDS', 'CloudFormation', 'GitHub Actions', 'Angular'],
   },
   {
@@ -97,3 +146,4 @@ export const CONTACT = {
   email: 'contacto@victormorales.dev',
   linkedin: 'https://www.linkedin.com/in/victor-hg/',
 };
+

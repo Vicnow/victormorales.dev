@@ -1,0 +1,174 @@
+/* Va dentro de un puesto de Experiencia: se adapta al ancho de esa columna, no al de la ventana. */
+:host {
+  display: block;
+  margin-top: 22px;
+  container-type: inline-size;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 2 → 4 columnas según el espacio de la columna: nunca queda una tarjeta huérfana. */
+@container (min-width: 720px) {
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.card {
+  --glow: color-mix(in srgb, var(--c) 35%, transparent);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgb(11 17 27 / 0.7), rgb(11 17 27 / 0.35));
+  transition: border-color 0.5s, box-shadow 0.5s, transform 0.3s;
+}
+
+.card:hover {
+  border-color: var(--glow);
+  transform: translateY(-3px);
+}
+
+/* Al terminar su contador, la tarjeta "se enciende". */
+.card.is-done {
+  border-color: color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: 0 16px 40px -28px var(--glow);
+}
+
+.figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 5px;
+  margin: 0;
+  line-height: 0.9;
+}
+
+.num {
+  display: inline-block;
+  transform-origin: left bottom;
+  font: 800 clamp(2.25rem, 9cqi, 3rem)/0.9 var(--display);
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(160deg, #fff 10%, var(--c) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@container (min-width: 720px) {
+  .num { font-size: clamp(2.25rem, 5.4cqi, 3rem); }
+}
+
+.prefix {
+  font: 600 1.375rem/1 var(--display);
+  color: var(--c);
+  opacity: 0.7;
+}
+
+.unit {
+  font: 600 0.8125rem/1 var(--mono);
+  color: var(--c);
+}
+
+.label {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* ---------- Barras ---------- */
+
+/* Las barras se van al fondo para alinearse entre tarjetas. */
+.rule,
+.compare { margin-top: auto; }
+
+.label { margin-bottom: 14px; }
+
+.rule {
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.rule > span,
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent), var(--c));
+  box-shadow: 0 0 12px var(--glow);
+}
+
+.compare {
+  display: grid;
+  gap: 6px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  height: 5px;
+  border-radius: 5px;
+  min-width: 5px;
+}
+
+.bar.is-before {
+  width: 100%;
+  background: rgb(154 170 189 / 0.22);
+  box-shadow: none;
+}
+
+.bar-tag {
+  font: 500 0.6875rem/1 var(--mono);
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+/* ---------- Entrada al hacer scroll (solo si el navegador la armó) ---------- */
+
+:host(.is-armed) .card {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+:host(.is-in) .card {
+  animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 120ms);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* El "0" no tiene a dónde contar: late una vez cuando aparece. */
+:host(.is-in) .card:last-child .num {
+  animation: pulse 1.4s ease-out calc(700ms + var(--i) * 120ms) both;
+}
+
+@keyframes pulse {
+  0% { filter: drop-shadow(0 0 0 transparent); transform: scale(0.6); opacity: 0; }
+  40% { filter: drop-shadow(0 0 20px var(--c)); transform: scale(1.08); opacity: 1; }
+  100% { filter: drop-shadow(0 0 0 transparent); transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+  .card:hover { transform: none; }
+}

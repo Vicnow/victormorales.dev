@@ -12,6 +12,9 @@
                 <li>{{ point }}</li>
               }
             </ul>
+            @if (role.metrics) {
+              <app-metrics [metrics]="role.metrics" />
+            }
             @if (role.stack.length) {
               <ul class="chips">
                 @for (item of role.stack; track item) {

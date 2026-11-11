@@ -1,0 +1,29 @@
+<ol class="grid">
+  @for (metric of metrics(); track metric.unit; let i = $index) {
+    <li class="card" [style.--c]="metric.color" [style.--i]="i" [class.is-done]="progress()[i] >= 1">
+      <p class="figure" [attr.aria-label]="(metric.prefix ?? '') + metric.value + ' ' + metric.unit">
+        @if (metric.prefix) {
+          <span class="prefix" aria-hidden="true">{{ metric.prefix }}</span>
+        }
+        <span class="num" aria-hidden="true">{{ display(metric, i) }}</span>
+        <span class="unit" aria-hidden="true">{{ metric.unit }}</span>
+      </p>
+      <p class="label">{{ metric.label }}</p>
+
+      @if (metric.before) {
+        <div class="compare" aria-hidden="true">
+          <div class="bar-row">
+            <span class="bar is-before"></span>
+            <span class="bar-tag">{{ metric.before.label }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar is-now" [style.width]="barWidth(metric, i)"></span>
+            <span class="bar-tag">hoy</span>
+          </div>
+        </div>
+      } @else {
+        <span class="rule" aria-hidden="true"><span [style.width]="barWidth(metric, i)"></span></span>
+      }
+    </li>
+  }
+</ol>
